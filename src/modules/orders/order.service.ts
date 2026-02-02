@@ -1,5 +1,5 @@
 import { prisma } from "../../lib/prisma";
-import { Prisma, OrderStatus } from "../../../generated/prisma/client";
+import { Prisma, OrderStatus } from "@prisma/client";
 import { UserRole } from "../../middleware/auth.middleware";
 import type { PaginationOptions } from "../../helpers/paginationSortingHelper";
 

@@ -7,3 +7,4 @@ build
 /generated/prisma
 .DS_Store
 /generated/prisma
+.vercel

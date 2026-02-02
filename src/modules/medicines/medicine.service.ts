@@ -1,4 +1,4 @@
-import { Prisma } from "../../../generated/prisma/client";
+import { Prisma } from "@prisma/client";
 import { prisma } from "../../lib/prisma";
 import { generateSlug } from "../../helpers/generateSlug";
 import type { PaginationOptions } from "../../helpers/paginationSortingHelper";
