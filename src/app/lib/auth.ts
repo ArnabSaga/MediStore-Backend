@@ -1,14 +1,12 @@
 import { betterAuth } from "better-auth";
-
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { prisma } from "./prisma";
-
+import { oAuthProxy } from "better-auth/plugins";
 import nodemailer from "nodemailer";
 
-import { oAuthProxy } from "better-auth/plugins";
 import { envVars } from "../config/env";
 import { UserRole } from "../constants/user";
 import { getVerificationEmailHtml } from "./mail-template";
+import { prisma } from "./prisma";
 
 const transporter = nodemailer.createTransport({
   host: envVars.EMAIL_SENDER.SMTP_HOST,
@@ -33,25 +31,21 @@ export const auth = betterAuth({
     autoSignIn: false,
     requireEmailVerification: true,
   },
+
   emailVerification: {
     sendOnSignUp: true,
     autoSignInAfterVerification: true,
-    sendVerificationEmail: async ({ user, url, token }, request) => {
-      try {
-        const verificationUrl = `${envVars.FRONTEND_URL}/verify-email?token=${token}`;
+    sendVerificationEmail: async ({ user, token }) => {
+      const verificationUrl = `${envVars.FRONTEND_URL}/verify-email?token=${token}`;
 
-        const info = await transporter.sendMail({
-          from: `"Medi-Store" <${envVars.EMAIL_SENDER.SMTP_FROM}>`,
-          to: user.email,
-          subject: "Please verify your email!",
-          html: getVerificationEmailHtml(verificationUrl, user.email),
-        });
+      const info = await transporter.sendMail({
+        from: `"Medi-Store" <${envVars.EMAIL_SENDER.SMTP_FROM}>`,
+        to: user.email,
+        subject: "Please verify your email!",
+        html: getVerificationEmailHtml(verificationUrl, user.email),
+      });
 
-        console.log("Email sent:", info.messageId);
-      } catch (error) {
-        console.error("Error sending email:", error);
-        throw error;
-      }
+      console.log("Email sent:", info.messageId);
     },
   },
 
@@ -87,10 +81,12 @@ export const auth = betterAuth({
       },
       isBanned: {
         type: "boolean",
+        required: true,
         defaultValue: false,
       },
       phone: {
         type: "string",
+        required: false,
         defaultValue: "",
       },
     },

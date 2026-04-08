@@ -1,4 +1,4 @@
-import type { UserRole } from "../middleware/auth.middleware";
+import type { UserRole } from "../constants/user";
 
 declare global {
   namespace Express {
@@ -10,6 +10,8 @@ declare global {
         role: UserRole;
         emailVerified: boolean;
         isBanned: boolean;
+        isActive: boolean;
+        isDeleted: boolean;
       };
     }
   }

@@ -1,33 +1,14 @@
-import { NextFunction, Request, Response } from "express";
 import { fromNodeHeaders } from "better-auth/node";
-import { auth as betterAuth } from "../lib/auth";
+import { NextFunction, Request, Response } from "express";
 import status from "http-status";
+import { auth as betterAuth } from "../lib/auth";
 
-import { UserRole, USER_ROLES } from "../constants/user";
+import { USER_ROLES, UserRole } from "../constants/user";
 import AppError from "../error/AppError";
+import { AuthOptions } from "../interfaces/auth.interface";
 
-declare global {
-  namespace Express {
-    interface Request {
-      user?: {
-        id: string;
-        email: string;
-        name: string;
-        role: UserRole;
-        emailVerified: boolean;
-        isBanned: boolean;
-      };
-    }
-  }
-}
-
-interface AuthOptions {
-  roles?: UserRole[];
-  requireVerifiedEmail?: boolean;
-}
-
-const isValidUserRole = (role: any): role is UserRole => {
-  return USER_ROLES.includes(role);
+const isValidUserRole = (role: unknown): role is UserRole => {
+  return typeof role === "string" && USER_ROLES.includes(role as UserRole);
 };
 
 const auth = (options: AuthOptions = {}) => {
@@ -44,15 +25,21 @@ const auth = (options: AuthOptions = {}) => {
       }
 
       const userRole = session.user.role;
+
       if (!isValidUserRole(userRole)) {
         throw new AppError(status.UNAUTHORIZED, "Invalid user role in session.");
       }
 
+      if (session.user.isDeleted) {
+        throw new AppError(status.FORBIDDEN, "Your account has been deleted.");
+      }
+
+      if (!session.user.isActive) {
+        throw new AppError(status.FORBIDDEN, "Your account is inactive. Access denied.");
+      }
+
       if (session.user.isBanned) {
-        throw new AppError(
-          status.FORBIDDEN,
-          "Your account is banned. Access denied."
-        );
+        throw new AppError(status.FORBIDDEN, "Your account is banned. Access denied.");
       }
 
       req.user = {
@@ -62,6 +49,8 @@ const auth = (options: AuthOptions = {}) => {
         role: userRole,
         emailVerified: session.user.emailVerified,
         isBanned: session.user.isBanned,
+        isActive: session.user.isActive,
+        isDeleted: session.user.isDeleted,
       };
 
       if (requireVerifiedEmail && !req.user.emailVerified) {
@@ -72,10 +61,7 @@ const auth = (options: AuthOptions = {}) => {
       }
 
       if (roles.length && !roles.includes(userRole)) {
-        throw new AppError(
-          status.FORBIDDEN,
-          "Forbidden. Insufficient permissions."
-        );
+        throw new AppError(status.FORBIDDEN, "Forbidden. Insufficient permissions.");
       }
 
       next();
