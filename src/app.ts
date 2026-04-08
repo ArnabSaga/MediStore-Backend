@@ -4,7 +4,7 @@ import express, { Application, Request, Response } from "express";
 
 import { auth } from "./app/lib/auth";
 
-import { notFound } from "./app/middleware/NotFound";
+import notFound from "./app/middleware/NotFound";
 import globalErrorHandler from "./app/middleware/globalErrorHandler";
 import router from "./app/routes";
 import { envVars } from "./app/config/env";

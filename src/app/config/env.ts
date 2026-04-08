@@ -26,6 +26,8 @@ interface EnvConfig {
     CLOUDINARY_API_KEY: string;
     CLOUDINARY_API_SECRET: string;
     USER_PROFILE_FOLDER: string;
+    MEDICINE_FOLDER: string;
+    CATEGORY_FOLDER: string;
   };
   ADMIN_NAME: string;
   ADMIN_EMAIL: string;
@@ -86,7 +88,9 @@ const loadEnvVariables = (): EnvConfig => {
       CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME as string,
       CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY as string,
       CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET as string,
-      USER_PROFILE_FOLDER: process.env.USER_PROFILE_FOLDER as string,
+      USER_PROFILE_FOLDER: process.env.USER_PROFILE_FOLDER || "medistore/profiles",
+      MEDICINE_FOLDER: process.env.MEDICINE_FOLDER || "medistore/medicines",
+      CATEGORY_FOLDER: process.env.CATEGORY_FOLDER || "medistore/categories",
     },
     ADMIN_NAME: process.env.ADMIN_NAME as string,
     ADMIN_EMAIL: process.env.ADMIN_EMAIL as string,
