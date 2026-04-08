@@ -1,7 +1,10 @@
 model Review {
-    id      String @id @default(uuid())
-    rating  Int    @default(5)
-    comment String @db.Text
+    id          String    @id @default(uuid())
+    rating      Int       @default(5) @db.SmallInt
+    comment     String    @db.Text
+    isDeleted   Boolean   @default(false)
+    deletedAt   DateTime?
+    isPublished Boolean   @default(true)
 
     customerId String
     medicineId String
@@ -10,8 +13,11 @@ model Review {
     medicine Medicine @relation(fields: [medicineId], references: [id])
 
     createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 
     @@unique([customerId, medicineId])
     @@index([medicineId])
+    @@index([isDeleted])
+    @@index([isPublished])
     @@map("reviews")
 }

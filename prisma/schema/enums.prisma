@@ -11,3 +11,10 @@ enum OrderStatus {
   DELIVERED
   CANCELLED
 }
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}

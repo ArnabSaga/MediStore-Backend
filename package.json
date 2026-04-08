@@ -9,7 +9,9 @@
     "dev": "tsx watch src/server.ts",
     "migrate": "prisma migrate dev",
     "generate": "prisma generate",
-    "studio": "prisma studio"
+    "studio": "prisma studio",
+    "lint": "tsc --noEmit"
+
   },
   "keywords": [],
   "author": "ArnabSaga",
