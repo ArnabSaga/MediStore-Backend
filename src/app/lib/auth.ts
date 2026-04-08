@@ -6,14 +6,15 @@ import { prisma } from "./prisma";
 import nodemailer from "nodemailer";
 
 import { getVerificationEmailHtml } from './mail-template';
+import { envVars } from '../config/env';
 
 const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
+  host: envVars.EMAIL_SENDER.SMTP_HOST,
+  port: Number(envVars.EMAIL_SENDER.SMTP_PORT),
+  secure: envVars.EMAIL_SENDER.SMTP_PORT === "465",
   auth: {
-    user: process.env.APP_USER,
-    pass: process.env.APP_PASS,
+    user: envVars.EMAIL_SENDER.SMTP_USER,
+    pass: envVars.EMAIL_SENDER.SMTP_PASS,
   },
 });
 
@@ -37,7 +38,7 @@ export const auth = betterAuth({
       },
     },
   },
-  trustedOrigins: [process.env.APP_URL!, process.env.API_URL!].filter(Boolean),
+  trustedOrigins: [envVars.FRONTEND_URL, envVars.BETTER_AUTH_URL].filter(Boolean),
   emailAndPassword: {
     enabled: true,
     autoSignIn: false,
@@ -48,7 +49,7 @@ export const auth = betterAuth({
     autoSignInAfterVerification: true,
     sendVerificationEmail: async ({ user, url, token }, request) => {
       try {
-        const verificationUrl = `${process.env.APP_URL}/verify-email?token=${token}`;
+        const verificationUrl = `${envVars.FRONTEND_URL}/verify-email?token=${token}`;
 
         const info = await transporter.sendMail({
           from: '"Medi-Store" <medi-store@gmail.com>',
@@ -69,8 +70,8 @@ export const auth = betterAuth({
     google: {
       prompt: "select_account consent",
       accessType: "offline",
-      clientId: process.env.GOOGLE_CLIENT_ID as string,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      clientId: envVars.GOOGLE_CLIENT_ID,
+      clientSecret: envVars.GOOGLE_CLIENT_SECRET,
     },
   },
 });

@@ -4,17 +4,19 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "tsx watch src/server.ts",
+    "start": "node dist/server.js",
     "build": "tsup",
-    "start": "tsx watch src/server.ts",
-    "seed:admin": "tsx src/scripts/seedAdmin.ts",
-    "postinstall": "prisma generate"
+    "dev": "tsx watch src/server.ts",
+    "migrate": "prisma migrate dev",
+    "generate": "prisma generate",
+    "studio": "prisma studio"
   },
   "keywords": [],
   "author": "ArnabSaga",
   "license": "ISC",
   "packageManager": "pnpm@10.28.0",
   "devDependencies": {
+    "@types/cookie-parser": "^1.4.10",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^24.10.9",
@@ -28,11 +30,16 @@
     "@prisma/adapter-pg": "^7.3.0",
     "@prisma/client": "^7.3.0",
     "better-auth": "^1.4.17",
+    "cloudinary": "^2.9.0",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
+    "http-status": "^2.1.0",
+    "multer": "^2.1.1",
     "nodemailer": "^7.0.12",
     "pg": "^8.17.2",
-    "tsup": "^8.5.1"
+    "tsup": "^8.5.1",
+    "zod": "^4.3.6"
   }
 }

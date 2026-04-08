@@ -1,0 +1,37 @@
+model Order {
+  id              String      @id @default(uuid())
+  customerId      String
+  totalAmount     Decimal     @db.Decimal(10, 2)
+  status          OrderStatus @default(PLACED)
+  shippingAddress String      @db.Text
+
+  customer User        @relation("CustomerOrders", fields: [customerId], references: [id])
+  items    OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([customerId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("orders")
+}
+
+model OrderItem {
+  id         String  @id @default(uuid())
+  orderId    String
+  medicineId String
+  sellerId   String
+  quantity   Int
+  price      Decimal @db.Decimal(10, 2)
+
+  order    Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  medicine Medicine @relation(fields: [medicineId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([orderId, medicineId])
+  @@index([orderId])
+  @@index([sellerId])
+  @@map("order_items")
+}

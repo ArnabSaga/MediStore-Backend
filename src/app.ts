@@ -7,6 +7,7 @@ import { auth } from "./app/lib/auth";
 import { notFound } from "./app/middleware/NotFound";
 import globalErrorHandler from "./app/middleware/globalErrorHandler";
 import router from "./app/routes";
+import { envVars } from "./app/config/env";
 
 const app: Application = express();
 
@@ -14,7 +15,7 @@ app.use(express.json());
 
 app.use(
   cors({
-    origin: process.env.APP_URL,
+    origin: envVars.FRONTEND_URL,
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization", "x-workspace-id", "Cookie"],

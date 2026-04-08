@@ -1,0 +1,29 @@
+model Medicine {
+  id           String   @id @default(uuid())
+  name         String   @db.VarChar(255)
+  slug         String
+  description  String?  @db.Text
+  price        Decimal  @db.Decimal(10, 2)
+  stock        Int      @default(0)
+  manufacturer String
+  imageUrl     String?
+  isActive     Boolean  @default(true)
+
+  categoryId String
+  sellerId   String
+
+  category Category @relation(fields: [categoryId], references: [id])
+  seller   User     @relation("SellerMedicines", fields: [sellerId], references: [id])
+
+  orderItems OrderItem[]
+  reviews    Review[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([sellerId, slug])
+  @@index([sellerId])
+  @@index([categoryId])
+  @@index([slug])
+  @@map("medicines")
+}
