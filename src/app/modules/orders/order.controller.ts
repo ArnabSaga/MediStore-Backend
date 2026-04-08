@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { OrderService } from "./order.service";
-import { UserRole } from "../../middleware/auth.middleware";
+import { UserRole } from "../../constants/user";
 import {
   validateCreateOrderDTO,
   validateUpdateOrderStatusDTO,

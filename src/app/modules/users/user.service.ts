@@ -1,5 +1,6 @@
 import { prisma } from "../../lib/prisma";
 import { Role } from "../../../generated/prisma/client";
+import { USER_ROLES } from "../../constants/user";
 
 interface UpdateUserProfilePayload {
   name?: string;
@@ -73,7 +74,7 @@ const getAllUsers = async (role?: string, isBanned?: boolean) => {
   const where: Record<string, any> = {};
 
   if (role) {
-    const validRoles = ["CUSTOMER", "SELLER", "ADMIN"] as const;
+    const validRoles = USER_ROLES;
     if (!validRoles.includes(role as any)) {
       throw Object.assign(
         new Error(`Invalid role. Must be one of: ${validRoles.join(", ")}`),
@@ -129,7 +130,7 @@ const changeUserRole = async (id: string, role: string) => {
     throw Object.assign(new Error("User id is required"), { statusCode: 400 });
   }
 
-  const validRoles = ["CUSTOMER", "SELLER", "ADMIN"] as const;
+  const validRoles = USER_ROLES;
   if (!validRoles.includes(role as any)) {
     throw Object.assign(
       new Error(`Invalid role. Must be one of: ${validRoles.join(", ")}`),

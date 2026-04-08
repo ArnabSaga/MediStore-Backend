@@ -1,6 +1,7 @@
 import { prisma } from "../../lib/prisma";
 import { Prisma, OrderStatus } from "@prisma/client";
-import { UserRole } from "../../middleware/auth.middleware";
+import { UserRole } from "../../constants/user";
+import { ORDER_STATUS, ORDER_STATUSES } from "../../constants/order";
 import type { PaginationOptions } from "../../helpers/paginationSortingHelper";
 
 const ALLOWED_ORDER_SORT_FIELDS = new Set([
@@ -19,16 +20,10 @@ interface CreateOrderPayload {
 }
 
 type UpdateActor =
-  | { role: UserRole.ADMIN }
-  | { role: UserRole.SELLER; sellerId: string };
+  | { role: typeof UserRole.ADMIN }
+  | { role: typeof UserRole.SELLER; sellerId: string };
 
-const VALID_STATUSES: OrderStatus[] = [
-  "PLACED",
-  "PROCESSING",
-  "SHIPPED",
-  "DELIVERED",
-  "CANCELLED",
-];
+const VALID_STATUSES = ORDER_STATUSES;
 
 const createOrder = async (payload: CreateOrderPayload) => {
   if (!payload.customerId) {
@@ -303,7 +298,7 @@ const cancelOrder = async (id: string, userId: string) => {
     );
   }
 
-  if (order.status !== "PLACED") {
+  if (order.status !== ORDER_STATUS.PLACED) {
     throw Object.assign(new Error("Only placed orders can be cancelled"), {
       statusCode: 409,
     });
@@ -311,7 +306,7 @@ const cancelOrder = async (id: string, userId: string) => {
 
   return prisma.order.update({
     where: { id },
-    data: { status: "CANCELLED" },
+    data: { status: ORDER_STATUS.CANCELLED as OrderStatus },
     include: { items: { include: { medicine: true } } },
   });
 };

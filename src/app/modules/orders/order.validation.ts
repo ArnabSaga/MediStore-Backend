@@ -1,3 +1,4 @@
+import { ORDER_STATUSES } from "../../constants/order";
 import { OrderStatus } from "../../../generated/prisma/client";
 import type { CreateOrderDTO, UpdateOrderStatusDTO } from "./order.dto";
 
@@ -66,13 +67,7 @@ export const validateUpdateOrderStatusDTO = (
     throw Object.assign(new Error("status is required"), { statusCode: 400 });
   }
 
-  const validStatuses: OrderStatus[] = [
-    "PLACED",
-    "PROCESSING",
-    "SHIPPED",
-    "DELIVERED",
-    "CANCELLED",
-  ];
+  const validStatuses = ORDER_STATUSES;
 
   if (!validStatuses.includes(body.status as OrderStatus)) {
     throw Object.assign(

@@ -1,12 +1,10 @@
 import { NextFunction, Request, Response } from "express";
 import { fromNodeHeaders } from "better-auth/node";
 import { auth as betterAuth } from "../lib/auth";
+import status from "http-status";
 
-export enum UserRole {
-  CUSTOMER = "CUSTOMER",
-  SELLER = "SELLER",
-  ADMIN = "ADMIN",
-}
+import { UserRole, USER_ROLES } from "../constants/user";
+import AppError from "../error/AppError";
 
 declare global {
   namespace Express {
@@ -29,11 +27,7 @@ interface AuthOptions {
 }
 
 const isValidUserRole = (role: any): role is UserRole => {
-  return (
-    role === UserRole.CUSTOMER ||
-    role === UserRole.SELLER ||
-    role === UserRole.ADMIN
-  );
+  return USER_ROLES.includes(role);
 };
 
 const auth = (options: AuthOptions = {}) => {
@@ -46,22 +40,18 @@ const auth = (options: AuthOptions = {}) => {
       });
 
       if (!session) {
-        throw Object.assign(new Error("Unauthorized. Please login."), {
-          statusCode: 401,
-        });
+        throw new AppError(status.UNAUTHORIZED, "Unauthorized. Please login.");
       }
 
       const userRole = session.user.role;
       if (!isValidUserRole(userRole)) {
-        throw Object.assign(new Error("Invalid user role in session."), {
-          statusCode: 401,
-        });
+        throw new AppError(status.UNAUTHORIZED, "Invalid user role in session.");
       }
 
       if (session.user.isBanned) {
-        throw Object.assign(
-          new Error("Your account is banned. Access denied."),
-          { statusCode: 403 }
+        throw new AppError(
+          status.FORBIDDEN,
+          "Your account is banned. Access denied."
         );
       }
 
@@ -75,16 +65,17 @@ const auth = (options: AuthOptions = {}) => {
       };
 
       if (requireVerifiedEmail && !req.user.emailVerified) {
-        throw Object.assign(
-          new Error("Email verification required. Please check your inbox."),
-          { statusCode: 403 }
+        throw new AppError(
+          status.FORBIDDEN,
+          "Email verification required. Please check your inbox."
         );
       }
 
       if (roles.length && !roles.includes(userRole)) {
-        throw Object.assign(new Error("Forbidden. Insufficient permissions."), {
-          statusCode: 403,
-        });
+        throw new AppError(
+          status.FORBIDDEN,
+          "Forbidden. Insufficient permissions."
+        );
       }
 
       next();
