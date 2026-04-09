@@ -1,275 +1,127 @@
-import { NextFunction, Request, Response } from "express";
+import { Request, Response } from "express";
+import status from "http-status";
+
+import AppError from "../../error/AppError";
+import catchAsync from "../../utils/catchAsync";
+import { queryHelper } from "../../utils/queryHelper";
+import { sendResponse } from "../../utils/sendResponse";
 import { MedicineService } from "./medicine.service";
-import { generateSlug } from "../../helpers/generateSlug";
-import paginationSortingHelper from "../../helpers/paginationSortingHelper";
 
-const createMedicine = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const sellerId = req.user?.id;
-    if (!sellerId)
-      throw Object.assign(new Error("Unauthorized"), { statusCode: 401 });
+const getRequiredParam = (value: unknown, fieldName: string) => {
+  const parsed = queryHelper.getSingleValue(value);
 
-    const {
-      name,
-      price,
-      stock,
-      manufacturer,
-      categoryId,
-      slug,
-      description,
-      imageUrl,
-      isActive,
-    } = req.body;
-
-    if (!name || typeof name !== "string" || name.trim().length < 2) {
-      throw Object.assign(new Error("name is required (min 2 chars)"), {
-        statusCode: 400,
-      });
-    }
-
-    if (typeof price !== "number" || Number.isNaN(price) || price <= 0) {
-      throw Object.assign(new Error("price must be a positive number"), {
-        statusCode: 400,
-      });
-    }
-
-    if (!Number.isInteger(stock) || stock < 0) {
-      throw Object.assign(new Error("stock must be a non-negative integer"), {
-        statusCode: 400,
-      });
-    }
-
-    if (
-      !manufacturer ||
-      typeof manufacturer !== "string" ||
-      manufacturer.trim().length < 2
-    ) {
-      throw Object.assign(new Error("manufacturer is required (min 2 chars)"), {
-        statusCode: 400,
-      });
-    }
-
-    if (!categoryId || typeof categoryId !== "string") {
-      throw Object.assign(new Error("categoryId is required"), {
-        statusCode: 400,
-      });
-    }
-
-    const finalSlug =
-      typeof slug === "string" && slug.trim().length > 0
-        ? generateSlug(slug)
-        : generateSlug(name);
-
-    const payload: any = {
-      name: name.trim(),
-      slug: finalSlug,
-      price,
-      stock,
-      manufacturer: manufacturer.trim(),
-      categoryId,
-      sellerId,
-    };
-
-    if (typeof description === "string" && description.trim().length > 0) {
-      payload.description = description.trim();
-    }
-
-    if (typeof imageUrl === "string" && imageUrl.trim().length > 0) {
-      payload.imageUrl = imageUrl.trim();
-    }
-
-    if (typeof isActive === "boolean") {
-      payload.isActive = isActive;
-    }
-
-    const result = await MedicineService.createMedicine(payload);
-
-    res.status(201).json({
-      success: true,
-      message: "Medicine created successfully",
-      data: result,
-    });
-  } catch (error) {
-    next(error);
+  if (!parsed) {
+    throw new AppError(status.BAD_REQUEST, `${fieldName} is required`);
   }
+
+  return parsed;
 };
 
-const getAllMedicines = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const { categoryId, search, minPrice, maxPrice, manufacturer } = req.query;
+const createMedicine = catchAsync(async (req: Request, res: Response) => {
+  const result = await MedicineService.createMedicine({
+    ...req.body,
+    sellerId: req.user!.id,
+  });
 
-    const filters: any = {};
+  sendResponse(res, {
+    success: true,
+    statusCode: status.CREATED,
+    message: "Medicine created successfully",
+    data: result,
+  });
+});
 
-    if (typeof categoryId === "string") filters.categoryId = categoryId;
-    if (typeof search === "string") filters.search = search;
-    if (typeof manufacturer === "string") filters.manufacturer = manufacturer;
+const getAllMedicines = catchAsync(async (req: Request, res: Response) => {
+  const result = await MedicineService.getAllMedicines(req.query as Record<string, unknown>);
 
-    if (typeof minPrice === "string") filters.minPrice = Number(minPrice);
-    if (typeof maxPrice === "string") filters.maxPrice = Number(maxPrice);
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: "Medicines fetched successfully",
+    meta: result.meta,
+    data: result.data,
+  });
+});
 
-    const pagination = paginationSortingHelper(req.query);
+const getMedicineById = catchAsync(async (req: Request, res: Response) => {
+  const medicineId = getRequiredParam(req.params.id, "Medicine id");
+  const result = await MedicineService.getMedicineById(medicineId);
 
-    const result = await MedicineService.getAllMedicines(filters, pagination);
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: "Medicine fetched successfully",
+    data: result,
+  });
+});
 
-    res.status(200).json({
-      success: true,
-      message: "Medicines fetched successfully",
-      meta: {
-        page: pagination.page,
-        limit: pagination.limit,
-      },
-      data: result,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+const getSellerMedicines = catchAsync(async (req: Request, res: Response) => {
+  const result = await MedicineService.getSellerMedicines(
+    req.user!.id,
+    req.query as Record<string, unknown>
+  );
 
-const getMedicineById = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const id = String(req.params.id);
-    const result = await MedicineService.getMedicineById(id);
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: "Seller medicines fetched successfully",
+    meta: result.meta,
+    data: result.data,
+  });
+});
 
-    res.status(200).json({
-      success: true,
-      message: "Medicine fetched successfully",
-      data: result,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+const updateMedicine = catchAsync(async (req: Request, res: Response) => {
+  const medicineId = getRequiredParam(req.params.id, "Medicine id");
 
-const getSellerMedicines = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const sellerId = req.user?.id;
-    if (!sellerId)
-      throw Object.assign(new Error("Unauthorized"), { statusCode: 401 });
+  const result = await MedicineService.updateMedicineForSeller(medicineId, req.body, req.user!.id);
 
-    const includeInactive =
-      typeof req.query.includeInactive === "string"
-        ? req.query.includeInactive === "true"
-        : false;
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: "Medicine updated successfully",
+    data: result,
+  });
+});
 
-    const result = await MedicineService.getSellerMedicines(
-      sellerId,
-      includeInactive
-    );
+const deleteMedicine = catchAsync(async (req: Request, res: Response) => {
+  const medicineId = getRequiredParam(req.params.id, "Medicine id");
+  await MedicineService.deleteMedicineForSeller(medicineId, req.user!.id);
 
-    res.status(200).json({
-      success: true,
-      message: "Seller medicines fetched successfully",
-      data: result,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: "Medicine deleted successfully",
+    data: null,
+  });
+});
 
-const updateMedicine = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const id = String(req.params.id);
-    const actor = req.user;
-    if (!actor)
-      throw Object.assign(new Error("Unauthorized"), { statusCode: 401 });
+const adminUpdateMedicine = catchAsync(async (req: Request, res: Response) => {
+  const medicineId = getRequiredParam(req.params.id, "Medicine id");
+  const result = await MedicineService.updateMedicineAsAdmin(medicineId, req.body);
 
-    const payload = req.body ?? {};
-    const result = await MedicineService.updateMedicineForSeller(
-      id,
-      payload,
-      actor.id
-    );
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: "Medicine updated successfully",
+    data: result,
+  });
+});
 
-    res.status(200).json({
-      success: true,
-      message: "Medicine updated successfully",
-      data: result,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+const adminDeleteMedicine = catchAsync(async (req: Request, res: Response) => {
+  const medicineId = getRequiredParam(req.params.id, "Medicine id");
+  const hardDelete = queryHelper.getSingleValue(req.query.hardDelete) === "true";
 
-const deleteMedicine = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const id = String(req.params.id);
-    const actor = req.user;
-    if (!actor)
-      throw Object.assign(new Error("Unauthorized"), { statusCode: 401 });
+  await MedicineService.deleteMedicineAsAdmin(medicineId, { hardDelete });
 
-    await MedicineService.deleteMedicineForSeller(id, actor.id);
-
-    res.status(200).json({
-      success: true,
-      message: "Medicine deleted successfully",
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-//* Admin endpoints
-const adminUpdateMedicine = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const id = String(req.params.id);
-    const payload = req.body ?? {};
-    const result = await MedicineService.updateMedicineAsAdmin(id, payload);
-
-    res.status(200).json({
-      success: true,
-      message: "Medicine updated successfully",
-      data: result,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-const adminDeleteMedicine = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const id = String(req.params.id);
-    await MedicineService.deleteMedicineAsAdmin(id);
-
-    res.status(200).json({
-      success: true,
-      message: "Medicine deleted successfully",
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: hardDelete
+      ? "Medicine permanently deleted successfully"
+      : "Medicine deleted successfully",
+    data: null,
+  });
+});
 
 export const MedicineController = {
   createMedicine,

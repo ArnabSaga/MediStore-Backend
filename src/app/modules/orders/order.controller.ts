@@ -1,196 +1,127 @@
-import { NextFunction, Request, Response } from "express";
-import { OrderService } from "./order.service";
+import { Request, Response } from "express";
+import status from "http-status";
+
+import AppError from "../../error/AppError";
 import { UserRole } from "../../constants/user";
-import {
-  validateCreateOrderDTO,
-  validateUpdateOrderStatusDTO,
-} from "./order.validation";
-import paginationSortingHelper from "../../helpers/paginationSortingHelper";
+import catchAsync from "../../utils/catchAsync";
+import { queryHelper } from "../../utils/queryHelper";
+import { sendResponse } from "../../utils/sendResponse";
+import { OrderService } from "./order.service";
 
-const createOrder = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const customerId = req.user?.id;
-    if (!customerId) {
-      throw Object.assign(new Error("Unauthorized"), { statusCode: 401 });
-    }
+const getRequiredParam = (value: unknown, fieldName: string) => {
+  const parsed = queryHelper.getSingleValue(value);
 
-    const dto = validateCreateOrderDTO(req.body);
-
-    const result = await OrderService.createOrder({
-      customerId,
-      shippingAddress: dto.shippingAddress,
-      items: dto.items,
-    });
-
-    res.status(201).json({
-      success: true,
-      message: "Order created successfully",
-      data: result,
-    });
-  } catch (error) {
-    next(error);
+  if (!parsed) {
+    throw new AppError(status.BAD_REQUEST, `${fieldName} is required`);
   }
+
+  return parsed;
 };
 
-const getUserOrders = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const userId = req.user?.id;
-    if (!userId)
-      throw Object.assign(new Error("Unauthorized"), { statusCode: 401 });
+const createOrder = catchAsync(async (req: Request, res: Response) => {
+  const result = await OrderService.createOrder({
+    customerId: req.user!.id,
+    shippingAddress: req.body.shippingAddress,
+    items: req.body.items,
+  });
 
-    const pagination = paginationSortingHelper(req.query);
+  sendResponse(res, {
+    success: true,
+    statusCode: status.CREATED,
+    message: "Order created successfully",
+    data: result,
+  });
+});
 
-    const result = await OrderService.getUserOrders(userId, pagination);
+const getUserOrders = catchAsync(async (req: Request, res: Response) => {
+  const result = await OrderService.getUserOrders(
+    req.user!.id,
+    req.query as Record<string, unknown>
+  );
 
-    res.status(200).json({
-      success: true,
-      message: "Orders fetched successfully",
-      meta: { page: pagination.page, limit: pagination.limit },
-      data: result,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: "Orders fetched successfully",
+    meta: result.meta,
+    data: result.data,
+  });
+});
 
-const getOrderById = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const id = String(req.params.id);
-    const userId = req.user?.id;
+const getOrderById = catchAsync(async (req: Request, res: Response) => {
+  const id = getRequiredParam(req.params.id, "Order id");
 
-    if (!userId) {
-      throw Object.assign(new Error("Unauthorized"), { statusCode: 401 });
-    }
+  const result = await OrderService.getOrderByIdForCustomer(id, req.user!.id);
 
-    const result = await OrderService.getOrderByIdForCustomer(id, userId);
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: "Order fetched successfully",
+    data: result,
+  });
+});
 
-    res.status(200).json({
-      success: true,
-      message: "Order fetched successfully",
-      data: result,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+const cancelOrder = catchAsync(async (req: Request, res: Response) => {
+  const id = getRequiredParam(req.params.id, "Order id");
 
-const cancelOrder = async (req: Request, res: Response, next: NextFunction) => {
-  try {
-    const id = String(req.params.id);
-    const userId = req.user?.id;
+  const result = await OrderService.cancelOrder(id, req.user!.id);
 
-    if (!userId) {
-      throw Object.assign(new Error("Unauthorized"), { statusCode: 401 });
-    }
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: "Order cancelled successfully",
+    data: result,
+  });
+});
 
-    const result = await OrderService.cancelOrder(id, userId);
+const getSellerOrders = catchAsync(async (req: Request, res: Response) => {
+  const result = await OrderService.getSellerOrders(
+    req.user!.id,
+    req.query as Record<string, unknown>
+  );
 
-    res.status(200).json({
-      success: true,
-      message: "Order cancelled successfully",
-      data: result,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: "Seller orders fetched successfully",
+    meta: result.meta,
+    data: result.data,
+  });
+});
 
-const getSellerOrders = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const sellerId = req.user?.id;
-    if (!sellerId)
-      throw Object.assign(new Error("Unauthorized"), { statusCode: 401 });
+const updateOrderStatus = catchAsync(async (req: Request, res: Response) => {
+  const id = getRequiredParam(req.params.id, "Order id");
+  const orderStatus = req.body.status;
 
-    const pagination = paginationSortingHelper(req.query);
+  const result =
+    req.user!.role === UserRole.SELLER
+      ? await OrderService.updateOrderStatus(id, orderStatus, {
+          role: UserRole.SELLER,
+          sellerId: req.user!.id,
+        })
+      : await OrderService.updateOrderStatus(id, orderStatus, {
+          role: UserRole.ADMIN,
+        });
 
-    const result = await OrderService.getSellerOrders(sellerId, pagination);
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: "Order status updated successfully",
+    data: result,
+  });
+});
 
-    res.status(200).json({
-      success: true,
-      message: "Seller orders fetched successfully",
-      meta: { page: pagination.page, limit: pagination.limit },
-      data: result,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+const getAllOrders = catchAsync(async (req: Request, res: Response) => {
+  const result = await OrderService.getAllOrders(req.query as Record<string, unknown>);
 
-const updateOrderStatus = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const id = String(req.params.id);
-    const actor = req.user;
-
-    if (!actor) {
-      throw Object.assign(new Error("Unauthorized"), { statusCode: 401 });
-    }
-
-    if (actor.role !== UserRole.SELLER && actor.role !== UserRole.ADMIN) {
-      throw Object.assign(new Error("Forbidden. Insufficient permissions."), {
-        statusCode: 403,
-      });
-    }
-
-    const dto = validateUpdateOrderStatusDTO(req.body);
-
-    const result =
-      actor.role === UserRole.SELLER
-        ? await OrderService.updateOrderStatus(id, dto.status, {
-            role: UserRole.SELLER,
-            sellerId: actor.id,
-          })
-        : await OrderService.updateOrderStatus(id, dto.status, {
-            role: UserRole.ADMIN,
-          });
-
-    res.status(200).json({
-      success: true,
-      message: "Order status updated successfully",
-      data: result,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-const getAllOrders = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const status =
-      typeof req.query.status === "string" ? req.query.status : undefined;
-    const pagination = paginationSortingHelper(req.query);
-
-    const result = await OrderService.getAllOrders(status, pagination);
-
-    res.status(200).json({
-      success: true,
-      message: "Orders fetched successfully",
-      meta: { page: pagination.page, limit: pagination.limit },
-      data: result,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: "Orders fetched successfully",
+    meta: result.meta,
+    data: result.data,
+  });
+});
 
 export const OrderController = {
   createOrder,

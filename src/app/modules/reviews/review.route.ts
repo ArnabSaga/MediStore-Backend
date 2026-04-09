@@ -1,36 +1,54 @@
 import express, { Router } from "express";
-import auth from "../../middleware/auth.middleware";
+
 import { UserRole } from "../../constants/user";
+import auth from "../../middleware/auth.middleware";
+import validateRequest from "../../middleware/validateRequest";
 import { ReviewController } from "./review.controller";
+import { ReviewValidation } from "./review.validation";
 
-const router = express.Router();
+const reviewRouter = express.Router();
 
-//* Public routes
-router.get("/medicine/:medicineId", ReviewController.getMedicineReviews);
+// Public routes
+reviewRouter.get(
+  "/medicine/:medicineId",
+  validateRequest(ReviewValidation.getMedicineReviews),
+  ReviewController.getMedicineReviews
+);
 
-//* Customer routes
-router.post(
+// Customer routes
+reviewRouter.post(
   "/",
   auth({ roles: [UserRole.CUSTOMER], requireVerifiedEmail: true }),
+  validateRequest(ReviewValidation.createReview),
   ReviewController.createReview
 );
 
-router.get(
-  "/",
+reviewRouter.get(
+  "/my-reviews",
   auth({ roles: [UserRole.CUSTOMER], requireVerifiedEmail: true }),
-  ReviewController.getUserReviews
+  validateRequest(ReviewValidation.getMyReviews),
+  ReviewController.getMyReviews
 );
 
-router.put(
+reviewRouter.put(
   "/:id",
   auth({ roles: [UserRole.CUSTOMER], requireVerifiedEmail: true }),
+  validateRequest(ReviewValidation.updateReview),
   ReviewController.updateReview
 );
 
-router.delete(
+reviewRouter.patch(
   "/:id",
   auth({ roles: [UserRole.CUSTOMER], requireVerifiedEmail: true }),
+  validateRequest(ReviewValidation.updateReview),
+  ReviewController.updateReview
+);
+
+reviewRouter.delete(
+  "/:id",
+  auth({ roles: [UserRole.CUSTOMER], requireVerifiedEmail: true }),
+  validateRequest(ReviewValidation.deleteReview),
   ReviewController.deleteReview
 );
 
-export const ReviewRouter: Router = router;
+export const ReviewRouter: Router = reviewRouter;

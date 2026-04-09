@@ -1,80 +1,100 @@
-import { ORDER_STATUSES } from "../../constants/order";
-import { OrderStatus } from "../../../generated/prisma/client";
-import type { CreateOrderDTO, UpdateOrderStatusDTO } from "./order.dto";
+import { z } from "zod";
+import { OrderStatus, PaymentStatus } from "../../../generated/prisma/client";
 
-const isNonEmptyString = (v: unknown): v is string =>
-  typeof v === "string" && v.trim().length > 0;
+const orderIdParamsSchema = z.object({
+  id: z.string().uuid("Invalid order id"),
+});
 
-const isPositiveInt = (v: unknown): v is number =>
-  Number.isInteger(v) && (v as number) > 0;
+const createOrderBodySchema = z.object({
+  shippingAddress: z
+    .string({
+      message: "Shipping address is required",
+    })
+    .trim()
+    .min(5, "Shipping address must be at least 5 characters")
+    .max(2000, "Shipping address is too long"),
 
-export const validateCreateOrderDTO = (body: any): CreateOrderDTO => {
-  if (!body || typeof body !== "object") {
-    throw Object.assign(new Error("Invalid request body"), { statusCode: 400 });
-  }
+  items: z
+    .array(
+      z.object({
+        medicineId: z
+          .string({
+            message: "Medicine ID is required",
+          })
+          .uuid("Invalid medicine id"),
+        quantity: z
+          .number({
+            message: "Quantity is required",
+          })
+          .int("Quantity must be an integer")
+          .positive("Quantity must be a positive integer"),
+      })
+    )
+    .min(1, "At least one item is required"),
+});
 
-  if (!isNonEmptyString(body.shippingAddress)) {
-    throw Object.assign(new Error("shippingAddress is required"), {
-      statusCode: 400,
-    });
-  }
+const orderListQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional(),
+  sortBy: z.enum(["createdAt", "updatedAt", "totalAmount", "status", "paymentStatus"]).optional(),
+  sortOrder: z.enum(["asc", "desc"]).optional(),
+  status: z.nativeEnum(OrderStatus).optional(),
+  paymentStatus: z.nativeEnum(PaymentStatus).optional(),
+});
 
-  if (!Array.isArray(body.items) || body.items.length === 0) {
-    throw Object.assign(new Error("items must be a non-empty array"), {
-      statusCode: 400,
-    });
-  }
+const sellerOrderListQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional(),
+  sortBy: z.enum(["createdAt", "price", "quantity"]).optional(),
+  sortOrder: z.enum(["asc", "desc"]).optional(),
+  status: z.nativeEnum(OrderStatus).optional(),
+  paymentStatus: z.nativeEnum(PaymentStatus).optional(),
+});
 
-  const items = body.items.map((it: any, idx: number) => {
-    if (!it || typeof it !== "object") {
-      throw Object.assign(new Error(`items[${idx}] must be an object`), {
-        statusCode: 400,
-      });
-    }
+const adminOrderListQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional(),
+  sortBy: z.enum(["createdAt", "updatedAt", "totalAmount", "status", "paymentStatus"]).optional(),
+  sortOrder: z.enum(["asc", "desc"]).optional(),
+  status: z.nativeEnum(OrderStatus).optional(),
+  paymentStatus: z.nativeEnum(PaymentStatus).optional(),
+  customerId: z.string().uuid("Invalid customer id").optional(),
+});
 
-    if (!isNonEmptyString(it.medicineId)) {
-      throw Object.assign(new Error(`items[${idx}].medicineId is required`), {
-        statusCode: 400,
-      });
-    }
+const updateOrderStatusBodySchema = z.object({
+  status: z.nativeEnum(OrderStatus, {
+    message: "Status is required",
+  }),
+});
 
-    if (!isPositiveInt(it.quantity)) {
-      throw Object.assign(
-        new Error(`items[${idx}].quantity must be a positive integer`),
-        {
-          statusCode: 400,
-        }
-      );
-    }
+export const OrderValidation = {
+  createOrder: {
+    body: createOrderBodySchema,
+  },
+  getCustomerOrders: {
+    query: orderListQuerySchema,
+  },
+  getSellerOrders: {
+    query: sellerOrderListQuerySchema,
+  },
+  getAllOrders: {
+    query: adminOrderListQuerySchema,
+  },
+  getOrderById: {
+    params: orderIdParamsSchema,
+  },
+  cancelOrder: {
+    params: orderIdParamsSchema,
+  },
+  updateOrderStatus: {
+    params: orderIdParamsSchema,
+    body: updateOrderStatusBodySchema,
+  },
 
-    return { medicineId: it.medicineId.trim(), quantity: it.quantity };
-  });
-
-  return {
-    shippingAddress: body.shippingAddress.trim(),
-    items,
-  };
-};
-
-export const validateUpdateOrderStatusDTO = (
-  body: any
-): UpdateOrderStatusDTO => {
-  if (!body || typeof body !== "object") {
-    throw Object.assign(new Error("Invalid request body"), { statusCode: 400 });
-  }
-
-  if (!isNonEmptyString(body.status)) {
-    throw Object.assign(new Error("status is required"), { statusCode: 400 });
-  }
-
-  const validStatuses = ORDER_STATUSES;
-
-  if (!validStatuses.includes(body.status as OrderStatus)) {
-    throw Object.assign(
-      new Error(`Invalid status. Must be one of: ${validStatuses.join(", ")}`),
-      { statusCode: 400 }
-    );
-  }
-
-  return { status: body.status as OrderStatus };
+  createOrderValidationSchema: {
+    body: createOrderBodySchema,
+  },
+  updateOrderStatusValidationSchema: {
+    body: updateOrderStatusBodySchema,
+  },
 };

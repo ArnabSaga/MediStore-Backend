@@ -1,14 +1,21 @@
-import { prisma } from "../../lib/prisma";
-import { Prisma, OrderStatus } from "@prisma/client";
-import { UserRole } from "../../constants/user";
+import status from "http-status";
+import { OrderStatus, PaymentStatus, Prisma } from "../../../generated/prisma/client";
+
 import { ORDER_STATUS, ORDER_STATUSES } from "../../constants/order";
-import type { PaginationOptions } from "../../helpers/paginationSortingHelper";
+import { UserRole } from "../../constants/user";
+import AppError from "../../error/AppError";
+import { prisma } from "../../lib/prisma";
+import { queryHelper } from "../../utils/queryHelper";
 
 const ALLOWED_ORDER_SORT_FIELDS = new Set([
   "createdAt",
+  "updatedAt",
   "totalAmount",
   "status",
+  "paymentStatus",
 ]);
+
+type TOrderQuery = Record<string, unknown>;
 
 interface CreateOrderPayload {
   customerId: string;
@@ -24,35 +31,164 @@ type UpdateActor =
   | { role: typeof UserRole.SELLER; sellerId: string };
 
 const VALID_STATUSES = ORDER_STATUSES;
+const VALID_PAYMENT_STATUSES = Object.values(PaymentStatus);
+
+const ORDER_INCLUDE = {
+  customer: {
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+      image: true,
+    },
+  },
+  items: {
+    include: {
+      seller: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          image: true,
+        },
+      },
+      medicine: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          manufacturer: true,
+          imageUrl: true,
+          price: true,
+          stock: true,
+          isActive: true,
+          isDeleted: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "asc" as const,
+    },
+  },
+} satisfies Prisma.OrderInclude;
+
+const parseBoolean = (value: unknown): boolean | undefined => {
+  if (typeof value === "boolean") return value;
+
+  const singleValue = queryHelper.getSingleValue(value);
+  if (singleValue === "true") return true;
+  if (singleValue === "false") return false;
+
+  return undefined;
+};
+
+const buildMeta = (page: number, limit: number, total: number) => ({
+  page,
+  limit,
+  total,
+  totalPages: Math.ceil(total / limit),
+});
+
+const ensureCustomerExistsAndUsable = async (customerId: string) => {
+  const customer = await prisma.user.findUnique({
+    where: { id: customerId },
+    select: {
+      id: true,
+      role: true,
+      emailVerified: true,
+      isActive: true,
+      isBanned: true,
+      isDeleted: true,
+    },
+  });
+
+  if (!customer || customer.isDeleted) {
+    throw new AppError(status.NOT_FOUND, "Customer not found");
+  }
+
+  if (customer.role !== UserRole.CUSTOMER) {
+    throw new AppError(status.FORBIDDEN, "Only customers can place orders");
+  }
+
+  if (!customer.isActive || customer.isBanned) {
+    throw new AppError(status.FORBIDDEN, "Customer account is not eligible to place orders");
+  }
+
+  if (!customer.emailVerified) {
+    throw new AppError(status.FORBIDDEN, "Customer email must be verified");
+  }
+
+  return customer;
+};
+
+const sanitizeItems = (items: CreateOrderPayload["items"]) => {
+  const quantityMap = new Map<string, number>();
+
+  for (const item of items) {
+    if (!item.medicineId) {
+      throw new AppError(status.BAD_REQUEST, "Medicine id is required");
+    }
+
+    if (!Number.isInteger(item.quantity) || item.quantity <= 0) {
+      throw new AppError(status.BAD_REQUEST, "Quantity must be a positive integer");
+    }
+
+    quantityMap.set(item.medicineId, (quantityMap.get(item.medicineId) ?? 0) + item.quantity);
+  }
+
+  return Array.from(quantityMap.entries()).map(([medicineId, quantity]) => ({
+    medicineId,
+    quantity,
+  }));
+};
 
 const createOrder = async (payload: CreateOrderPayload) => {
   if (!payload.customerId) {
-    throw Object.assign(new Error("customerId is required"), {
-      statusCode: 400,
-    });
+    throw new AppError(status.BAD_REQUEST, "customerId is required");
   }
 
   if (!payload.shippingAddress || typeof payload.shippingAddress !== "string") {
-    throw Object.assign(new Error("shippingAddress is required"), {
-      statusCode: 400,
-    });
+    throw new AppError(status.BAD_REQUEST, "shippingAddress is required");
   }
 
   if (!Array.isArray(payload.items) || payload.items.length === 0) {
-    throw Object.assign(new Error("Order items are required"), {
-      statusCode: 400,
-    });
+    throw new AppError(status.BAD_REQUEST, "Order items are required");
   }
 
-  const medicineIds = payload.items.map((i) => i.medicineId);
+  await ensureCustomerExistsAndUsable(payload.customerId);
+
+  const normalizedItems = sanitizeItems(payload.items);
+  const medicineIds = normalizedItems.map((i) => i.medicineId);
 
   const medicines = await prisma.medicine.findMany({
     where: {
       id: { in: medicineIds },
       isActive: true,
+      isDeleted: false,
+      seller: {
+        is: {
+          role: "SELLER",
+          emailVerified: true,
+          isActive: true,
+          isBanned: false,
+          isDeleted: false,
+        },
+      },
+      category: {
+        is: {
+          isActive: true,
+          isDeleted: false,
+        },
+      },
     },
     select: {
       id: true,
+      name: true,
+      slug: true,
+      manufacturer: true,
+      imageUrl: true,
       price: true,
       stock: true,
       sellerId: true,
@@ -60,44 +196,52 @@ const createOrder = async (payload: CreateOrderPayload) => {
   });
 
   if (medicines.length !== medicineIds.length) {
-    throw Object.assign(
-      new Error("One or more medicines not found or inactive"),
-      {
-        statusCode: 404,
-      }
+    throw new AppError(status.NOT_FOUND, "One or more medicines not found or inactive");
+  }
+
+  const distinctSellerIds = new Set(medicines.map((m) => m.sellerId));
+  if (distinctSellerIds.size > 1) {
+    throw new AppError(
+      status.BAD_REQUEST,
+      "For now, one order can contain medicines from only one seller"
     );
   }
 
   const medicineMap = new Map(medicines.map((m) => [m.id, m]));
 
-  //* Build order items using DB price + sellerId
-  const orderItems = payload.items.map((it) => {
+  const orderItems = normalizedItems.map((it) => {
     const med = medicineMap.get(it.medicineId);
+
     if (!med) {
-      throw Object.assign(new Error("Medicine not found"), { statusCode: 404 });
+      throw new AppError(status.NOT_FOUND, "Medicine not found");
     }
 
     return {
       medicineId: it.medicineId,
       sellerId: med.sellerId,
       quantity: it.quantity,
-      price: med.price, // Decimal from DB
+      price: med.price,
+      medicineName: med.name,
+      medicineSlug: med.slug,
+      manufacturer: med.manufacturer,
+      imageUrl: med.imageUrl ?? null,
     };
   });
 
-  //* Calculate total with Decimal
   let total = new Prisma.Decimal(0);
+
   for (const it of orderItems) {
     total = total.plus(new Prisma.Decimal(it.price).mul(it.quantity));
   }
 
-  //* Transaction: decrement stock + create order
   const result = await prisma.$transaction(async (tx) => {
     for (const it of orderItems) {
       const updated = await tx.medicine.updateMany({
         where: {
           id: it.medicineId,
           stock: { gte: it.quantity },
+          isActive: true,
+          isDeleted: false,
         },
         data: {
           stock: { decrement: it.quantity },
@@ -105,12 +249,7 @@ const createOrder = async (payload: CreateOrderPayload) => {
       });
 
       if (updated.count !== 1) {
-        throw Object.assign(
-          new Error("Insufficient stock for one or more items"),
-          {
-            statusCode: 409,
-          }
-        );
+        throw new AppError(status.CONFLICT, "Insufficient stock for one or more items");
       }
     }
 
@@ -118,7 +257,7 @@ const createOrder = async (payload: CreateOrderPayload) => {
       data: {
         customerId: payload.customerId,
         totalAmount: total,
-        shippingAddress: payload.shippingAddress,
+        shippingAddress: payload.shippingAddress.trim(),
         items: {
           createMany: {
             data: orderItems.map((i) => ({
@@ -126,15 +265,15 @@ const createOrder = async (payload: CreateOrderPayload) => {
               sellerId: i.sellerId,
               quantity: i.quantity,
               price: i.price,
+              medicineName: i.medicineName,
+              medicineSlug: i.medicineSlug,
+              manufacturer: i.manufacturer,
+              imageUrl: i.imageUrl,
             })),
           },
         },
       },
-      include: {
-        items: {
-          include: { medicine: true },
-        },
-      },
+      include: ORDER_INCLUDE,
     });
 
     return created;
@@ -143,172 +282,360 @@ const createOrder = async (payload: CreateOrderPayload) => {
   return result;
 };
 
-const getUserOrders = async (userId: string, pagination: PaginationOptions) => {
-  if (!userId) {
-    throw Object.assign(new Error("Unauthorized"), { statusCode: 401 });
+const getUserOrders = async (userId: string, query: TOrderQuery) => {
+  await ensureCustomerExistsAndUsable(userId);
+
+  const pagination = queryHelper.parsePagination(query);
+  const statusFilter = queryHelper.getSingleValue(query.status);
+  const paymentStatusFilter = queryHelper.getSingleValue(query.paymentStatus);
+
+  const sortBy = ALLOWED_ORDER_SORT_FIELDS.has(pagination.sortBy) ? pagination.sortBy : "createdAt";
+
+  let parsedStatus: OrderStatus | undefined;
+  let parsedPaymentStatus: PaymentStatus | undefined;
+
+  if (statusFilter) {
+    if (!VALID_STATUSES.includes(statusFilter as OrderStatus)) {
+      throw new AppError(
+        status.BAD_REQUEST,
+        `Invalid order status. Must be one of: ${VALID_STATUSES.join(", ")}`
+      );
+    }
+
+    parsedStatus = statusFilter as OrderStatus;
   }
 
-  const sortBy = ALLOWED_ORDER_SORT_FIELDS.has(pagination.sortBy)
-    ? pagination.sortBy
-    : "createdAt";
+  if (paymentStatusFilter) {
+    if (!VALID_PAYMENT_STATUSES.includes(paymentStatusFilter as PaymentStatus)) {
+      throw new AppError(
+        status.BAD_REQUEST,
+        `Invalid payment status. Must be one of: ${VALID_PAYMENT_STATUSES.join(", ")}`
+      );
+    }
 
-  return prisma.order.findMany({
-    where: { customerId: userId },
-    skip: pagination.skip,
-    take: pagination.limit,
-    include: { items: { include: { medicine: true } } },
-    orderBy: { [sortBy]: pagination.sortOrder },
-  });
+    parsedPaymentStatus = paymentStatusFilter as PaymentStatus;
+  }
+
+  const where: Prisma.OrderWhereInput = {
+    customerId: userId,
+    ...(parsedStatus ? { status: parsedStatus } : {}),
+    ...(parsedPaymentStatus ? { paymentStatus: parsedPaymentStatus } : {}),
+  };
+
+  const [orders, total] = await prisma.$transaction([
+    prisma.order.findMany({
+      where,
+      skip: pagination.skip,
+      take: pagination.limit,
+      include: ORDER_INCLUDE,
+      orderBy: {
+        [sortBy]: pagination.sortOrder,
+      },
+    }),
+    prisma.order.count({ where }),
+  ]);
+
+  return {
+    meta: buildMeta(pagination.page, pagination.limit, total),
+    data: orders,
+  };
 };
 
 const getOrderByIdForCustomer = async (id: string, userId: string) => {
-  const result = await prisma.order.findUniqueOrThrow({
+  await ensureCustomerExistsAndUsable(userId);
+
+  const result = await prisma.order.findUnique({
     where: { id },
-    include: { items: { include: { medicine: true } } },
+    include: ORDER_INCLUDE,
   });
 
+  if (!result) {
+    throw new AppError(status.NOT_FOUND, "Order not found");
+  }
+
   if (result.customerId !== userId) {
-    throw Object.assign(new Error("Forbidden: order does not belong to you"), {
-      statusCode: 403,
-    });
+    throw new AppError(status.FORBIDDEN, "Forbidden: order does not belong to you");
   }
 
   return result;
 };
 
-const getAllOrders = async (
-  status: string | undefined,
-  pagination: PaginationOptions
-) => {
-  const where: Prisma.OrderWhereInput = {};
+const getAllOrders = async (query: TOrderQuery) => {
+  const pagination = queryHelper.parsePagination(query);
+  const statusFilter = queryHelper.getSingleValue(query.status);
+  const paymentStatusFilter = queryHelper.getSingleValue(query.paymentStatus);
+  const customerId = queryHelper.getSingleValue(query.customerId);
 
-  if (status) {
-    if (!VALID_STATUSES.includes(status as OrderStatus)) {
-      throw Object.assign(
-        new Error(
-          `Invalid order status. Must be one of: ${VALID_STATUSES.join(", ")}`
-        ),
-        { statusCode: 400 }
+  const sortBy = ALLOWED_ORDER_SORT_FIELDS.has(pagination.sortBy) ? pagination.sortBy : "createdAt";
+
+  let parsedStatus: OrderStatus | undefined;
+  let parsedPaymentStatus: PaymentStatus | undefined;
+
+  if (statusFilter) {
+    if (!VALID_STATUSES.includes(statusFilter as OrderStatus)) {
+      throw new AppError(
+        status.BAD_REQUEST,
+        `Invalid order status. Must be one of: ${VALID_STATUSES.join(", ")}`
       );
     }
-    where.status = status as OrderStatus;
+
+    parsedStatus = statusFilter as OrderStatus;
   }
 
-  const sortBy = ALLOWED_ORDER_SORT_FIELDS.has(pagination.sortBy)
-    ? pagination.sortBy
-    : "createdAt";
+  if (paymentStatusFilter) {
+    if (!VALID_PAYMENT_STATUSES.includes(paymentStatusFilter as PaymentStatus)) {
+      throw new AppError(
+        status.BAD_REQUEST,
+        `Invalid payment status. Must be one of: ${VALID_PAYMENT_STATUSES.join(", ")}`
+      );
+    }
 
-  return prisma.order.findMany({
-    where,
-    skip: pagination.skip,
-    take: pagination.limit,
-    include: {
-      customer: { select: { id: true, name: true, email: true } },
-      items: { include: { medicine: true } },
-    },
-    orderBy: { [sortBy]: pagination.sortOrder },
-  });
+    parsedPaymentStatus = paymentStatusFilter as PaymentStatus;
+  }
+
+  const where: Prisma.OrderWhereInput = {
+    ...(customerId ? { customerId } : {}),
+    ...(parsedStatus ? { status: parsedStatus } : {}),
+    ...(parsedPaymentStatus ? { paymentStatus: parsedPaymentStatus } : {}),
+  };
+
+  const [orders, total] = await prisma.$transaction([
+    prisma.order.findMany({
+      where,
+      skip: pagination.skip,
+      take: pagination.limit,
+      include: ORDER_INCLUDE,
+      orderBy: {
+        [sortBy]: pagination.sortOrder,
+      },
+    }),
+    prisma.order.count({ where }),
+  ]);
+
+  return {
+    meta: buildMeta(pagination.page, pagination.limit, total),
+    data: orders,
+  };
 };
 
-const getSellerOrders = async (
-  sellerId: string,
-  pagination: PaginationOptions
-) => {
-  if (!sellerId) {
-    throw Object.assign(new Error("Unauthorized"), { statusCode: 401 });
-  }
+const getSellerOrders = async (sellerId: string, query: TOrderQuery) => {
+  const pagination = queryHelper.parsePagination(query);
+  const statusFilter = queryHelper.getSingleValue(query.status);
+  const paymentStatusFilter = queryHelper.getSingleValue(query.paymentStatus);
 
-  const ALLOWED_ORDER_ITEM_SORT_FIELDS = new Set([
-    "createdAt",
-    "price",
-    "quantity",
-  ]);
+  const ALLOWED_ORDER_ITEM_SORT_FIELDS = new Set(["createdAt", "price", "quantity"]);
   const sortBy = ALLOWED_ORDER_ITEM_SORT_FIELDS.has(pagination.sortBy)
     ? pagination.sortBy
     : "createdAt";
 
-  return prisma.orderItem.findMany({
-    where: { sellerId },
-    skip: pagination.skip,
-    take: pagination.limit,
-    include: {
-      order: {
-        include: {
-          customer: {
-            select: { id: true, name: true, email: true, phone: true },
+  let parsedStatus: OrderStatus | undefined;
+  let parsedPaymentStatus: PaymentStatus | undefined;
+
+  if (statusFilter) {
+    if (!VALID_STATUSES.includes(statusFilter as OrderStatus)) {
+      throw new AppError(
+        status.BAD_REQUEST,
+        `Invalid order status. Must be one of: ${VALID_STATUSES.join(", ")}`
+      );
+    }
+
+    parsedStatus = statusFilter as OrderStatus;
+  }
+
+  if (paymentStatusFilter) {
+    if (!VALID_PAYMENT_STATUSES.includes(paymentStatusFilter as PaymentStatus)) {
+      throw new AppError(
+        status.BAD_REQUEST,
+        `Invalid payment status. Must be one of: ${VALID_PAYMENT_STATUSES.join(", ")}`
+      );
+    }
+
+    parsedPaymentStatus = paymentStatusFilter as PaymentStatus;
+  }
+
+  const orderWhere: Prisma.OrderWhereInput = {
+    ...(parsedStatus ? { status: parsedStatus } : {}),
+    ...(parsedPaymentStatus ? { paymentStatus: parsedPaymentStatus } : {}),
+  };
+
+  const where: Prisma.OrderItemWhereInput = {
+    sellerId,
+    ...(Object.keys(orderWhere).length > 0 ? { order: { is: orderWhere } } : {}),
+  };
+
+  const [items, total] = await prisma.$transaction([
+    prisma.orderItem.findMany({
+      where,
+      skip: pagination.skip,
+      take: pagination.limit,
+      include: {
+        order: {
+          select: {
+            id: true,
+            customerId: true,
+            totalAmount: true,
+            status: true,
+            paymentStatus: true,
+            shippingAddress: true,
+            createdAt: true,
+            updatedAt: true,
+            customer: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                phone: true,
+                image: true,
+              },
+            },
+          },
+        },
+        seller: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+            image: true,
+          },
+        },
+        medicine: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            manufacturer: true,
+            imageUrl: true,
+            price: true,
+            stock: true,
+            isActive: true,
+            isDeleted: true,
           },
         },
       },
-      medicine: true,
-    },
-    orderBy: { [sortBy]: pagination.sortOrder },
-  });
+      orderBy: {
+        [sortBy]: pagination.sortOrder,
+      },
+    }),
+    prisma.orderItem.count({ where }),
+  ]);
+
+  return {
+    meta: buildMeta(pagination.page, pagination.limit, total),
+    data: items,
+  };
 };
 
-const updateOrderStatus = async (
-  id: string,
-  status: OrderStatus,
-  actor: UpdateActor
-) => {
-  if (!VALID_STATUSES.includes(status)) {
-    throw Object.assign(
-      new Error(
-        `Invalid order status. Must be one of: ${VALID_STATUSES.join(", ")}`
-      ),
-      { statusCode: 400 }
+const updateOrderStatus = async (id: string, orderStatus: OrderStatus, actor: UpdateActor) => {
+  if (!VALID_STATUSES.includes(orderStatus)) {
+    throw new AppError(
+      status.BAD_REQUEST,
+      `Invalid order status. Must be one of: ${VALID_STATUSES.join(", ")}`
     );
   }
 
-  const order = await prisma.order.findUniqueOrThrow({
+  const order = await prisma.order.findUnique({
     where: { id },
-    include: { items: true },
+    include: {
+      items: true,
+    },
   });
 
-  //* Seller can update only if all items belong to them
+  if (!order) {
+    throw new AppError(status.NOT_FOUND, "Order not found");
+  }
+
   if (actor.role === UserRole.SELLER) {
-    const allBelongToSeller = order.items.every(
-      (it) => it.sellerId === actor.sellerId
-    );
+    const allBelongToSeller = order.items.every((it) => it.sellerId === actor.sellerId);
+
     if (!allBelongToSeller) {
-      throw Object.assign(
-        new Error("Forbidden: this order contains items from other sellers"),
-        {
-          statusCode: 403,
-        }
+      throw new AppError(
+        status.FORBIDDEN,
+        "Forbidden: this order contains items from other sellers"
       );
     }
   }
 
-  return prisma.order.update({
-    where: { id },
-    data: { status },
-    include: { items: { include: { medicine: true } } },
-  });
-};
+  if (order.status === OrderStatus.CANCELLED) {
+    throw new AppError(status.CONFLICT, "Cancelled orders cannot be updated");
+  }
 
-const cancelOrder = async (id: string, userId: string) => {
-  const order = await prisma.order.findUniqueOrThrow({ where: { id } });
+  if (order.status === OrderStatus.DELIVERED) {
+    throw new AppError(status.CONFLICT, "Delivered orders cannot be updated");
+  }
 
-  if (order.customerId !== userId) {
-    throw Object.assign(
-      new Error("Forbidden: cannot cancel someone else's order"),
-      {
-        statusCode: 403,
-      }
+  const allowedNextStatuses: Record<OrderStatus, OrderStatus[]> = {
+    PLACED: [OrderStatus.PROCESSING, OrderStatus.CANCELLED],
+    PROCESSING: [OrderStatus.SHIPPED, OrderStatus.CANCELLED],
+    SHIPPED: [OrderStatus.DELIVERED],
+    DELIVERED: [],
+    CANCELLED: [],
+  };
+
+  if (!allowedNextStatuses[order.status].includes(orderStatus)) {
+    throw new AppError(
+      status.CONFLICT,
+      `Invalid status transition from ${order.status} to ${orderStatus}`
     );
   }
 
-  if (order.status !== ORDER_STATUS.PLACED) {
-    throw Object.assign(new Error("Only placed orders can be cancelled"), {
-      statusCode: 409,
-    });
+  const updatedOrder = await prisma.order.update({
+    where: { id },
+    data: {
+      status: orderStatus,
+    },
+    include: ORDER_INCLUDE,
+  });
+
+  return updatedOrder;
+};
+
+const cancelOrder = async (id: string, userId: string) => {
+  await ensureCustomerExistsAndUsable(userId);
+
+  const order = await prisma.order.findUnique({
+    where: { id },
+    include: {
+      items: true,
+    },
+  });
+
+  if (!order) {
+    throw new AppError(status.NOT_FOUND, "Order not found");
   }
 
-  return prisma.order.update({
-    where: { id },
-    data: { status: ORDER_STATUS.CANCELLED as OrderStatus },
-    include: { items: { include: { medicine: true } } },
+  if (order.customerId !== userId) {
+    throw new AppError(status.FORBIDDEN, "Forbidden: cannot cancel someone else's order");
+  }
+
+  if (order.status !== ORDER_STATUS.PLACED) {
+    throw new AppError(status.CONFLICT, "Only placed orders can be cancelled");
+  }
+
+  const result = await prisma.$transaction(async (tx) => {
+    for (const item of order.items) {
+      await tx.medicine.update({
+        where: { id: item.medicineId },
+        data: {
+          stock: {
+            increment: item.quantity,
+          },
+        },
+      });
+    }
+
+    const updatedOrder = await tx.order.update({
+      where: { id },
+      data: {
+        status: ORDER_STATUS.CANCELLED as OrderStatus,
+      },
+      include: ORDER_INCLUDE,
+    });
+
+    return updatedOrder;
   });
+
+  return result;
 };
 
 export const OrderService = {

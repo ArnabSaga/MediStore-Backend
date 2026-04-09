@@ -1,191 +1,100 @@
-import { NextFunction, Request, Response } from "express";
+import { Request, Response } from "express";
+import status from "http-status";
+
+import AppError from "../../error/AppError";
+import catchAsync from "../../utils/catchAsync";
+import { queryHelper } from "../../utils/queryHelper";
+import { sendResponse } from "../../utils/sendResponse";
 import { ReviewService } from "./review.service";
-import paginationSortingHelper from "../../helpers/paginationSortingHelper";
 
-const createReview = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const customerId = req.user?.id;
-    if (!customerId) {
-      throw Object.assign(new Error("Unauthorized"), { statusCode: 401 });
-    }
+const getRequiredParam = (value: unknown, fieldName: string) => {
+  const parsed = queryHelper.getSingleValue(value);
 
-    const { medicineId, rating, comment } = req.body;
-
-    if (!medicineId || rating === undefined || !comment) {
-      throw Object.assign(
-        new Error("Missing required fields: medicineId, rating, comment"),
-        { statusCode: 400 }
-      );
-    }
-
-    if (typeof rating !== "number" || rating < 1 || rating > 5) {
-      throw Object.assign(
-        new Error("Rating must be a number between 1 and 5"),
-        {
-          statusCode: 400,
-        }
-      );
-    }
-
-    if (typeof comment !== "string" || comment.trim().length < 3) {
-      throw Object.assign(new Error("Comment must be at least 3 characters"), {
-        statusCode: 400,
-      });
-    }
-
-    const result = await ReviewService.createReview({
-      customerId,
-      medicineId,
-      rating,
-      comment: comment.trim(),
-    });
-
-    res.status(201).json({
-      success: true,
-      message: "Review created successfully",
-      data: result,
-    });
-  } catch (error) {
-    next(error);
+  if (!parsed) {
+    throw new AppError(status.BAD_REQUEST, `${fieldName} is required`);
   }
+
+  return parsed;
 };
 
-const getMedicineReviews = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const medicineId = String(req.params.medicineId);
+const createReview = catchAsync(async (req: Request, res: Response) => {
+  const result = await ReviewService.createReview({
+    customerId: req.user!.id,
+    medicineId: req.body.medicineId,
+    rating: req.body.rating,
+    comment: req.body.comment,
+  });
 
-    const pagination = paginationSortingHelper(req.query);
+  sendResponse(res, {
+    success: true,
+    statusCode: status.CREATED,
+    message: "Review created successfully",
+    data: result,
+  });
+});
 
-    const result = await ReviewService.getMedicineReviews(
-      medicineId,
-      pagination
-    );
+const getMedicineReviews = catchAsync(async (req: Request, res: Response) => {
+  const medicineId = getRequiredParam(req.params.medicineId, "Medicine id");
 
-    res.status(200).json({
-      success: true,
-      message: "Reviews fetched successfully",
-      meta: { page: pagination.page, limit: pagination.limit },
-      data: result,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+  const result = await ReviewService.getMedicineReviews(
+    medicineId,
+    req.query as Record<string, unknown>
+  );
 
-const getUserReviews = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const customerId = req.user?.id;
-    if (!customerId) {
-      throw Object.assign(new Error("Unauthorized"), { statusCode: 401 });
-    }
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: "Reviews fetched successfully",
+    meta: result.meta,
+    data: result.data,
+  });
+});
 
-    const pagination = paginationSortingHelper(req.query);
+const getMyReviews = catchAsync(async (req: Request, res: Response) => {
+  const result = await ReviewService.getUserReviews(
+    req.user!.id,
+    req.query as Record<string, unknown>
+  );
 
-    const result = await ReviewService.getUserReviews(customerId, pagination);
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: "My reviews fetched successfully",
+    meta: result.meta,
+    data: result.data,
+  });
+});
 
-    res.status(200).json({
-      success: true,
-      message: "Your reviews fetched successfully",
-      meta: { page: pagination.page, limit: pagination.limit },
-      data: result,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+const updateReview = catchAsync(async (req: Request, res: Response) => {
+  const id = getRequiredParam(req.params.id, "Review id");
 
-const updateReview = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const id = String(req.params.id);
-    const customerId = req.user?.id;
+  const result = await ReviewService.updateReview(id, req.user!.id, req.body);
 
-    if (!customerId) {
-      throw Object.assign(new Error("Unauthorized"), { statusCode: 401 });
-    }
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: "Review updated successfully",
+    data: result,
+  });
+});
 
-    const { rating, comment } = req.body;
+const deleteReview = catchAsync(async (req: Request, res: Response) => {
+  const id = getRequiredParam(req.params.id, "Review id");
 
-    // Optional validation (if provided)
-    if (
-      rating !== undefined &&
-      (typeof rating !== "number" || rating < 1 || rating > 5)
-    ) {
-      throw Object.assign(
-        new Error("Rating must be a number between 1 and 5"),
-        {
-          statusCode: 400,
-        }
-      );
-    }
+  await ReviewService.deleteReview(id, req.user!.id);
 
-    if (
-      comment !== undefined &&
-      (typeof comment !== "string" || comment.trim().length < 3)
-    ) {
-      throw Object.assign(new Error("Comment must be at least 3 characters"), {
-        statusCode: 400,
-      });
-    }
-
-    const result = await ReviewService.updateReview(id, customerId, {
-      rating,
-      comment: typeof comment === "string" ? comment.trim() : undefined,
-    });
-
-    res.status(200).json({
-      success: true,
-      message: "Review updated successfully",
-      data: result,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-const deleteReview = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
-  try {
-    const id = String(req.params.id);
-    const customerId = req.user?.id;
-
-    if (!customerId) {
-      throw Object.assign(new Error("Unauthorized"), { statusCode: 401 });
-    }
-
-    await ReviewService.deleteReview(id, customerId);
-
-    res.status(200).json({
-      success: true,
-      message: "Review deleted successfully",
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: "Review deleted successfully",
+    data: null,
+  });
+});
 
 export const ReviewController = {
   createReview,
   getMedicineReviews,
-  getUserReviews,
+  getMyReviews,
   updateReview,
   deleteReview,
 };
