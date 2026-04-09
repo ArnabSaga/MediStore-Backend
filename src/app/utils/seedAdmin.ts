@@ -1,5 +1,5 @@
-import "dotenv/config";
 import { fromNodeHeaders } from "better-auth/node";
+import "dotenv/config";
 import { envVars } from "../config/env";
 import { UserRole } from "../constants/user";
 import { auth } from "../lib/auth";
@@ -7,6 +7,11 @@ import { prisma } from "../lib/prisma";
 
 export const seedAdmin = async () => {
   try {
+    if (!envVars.ADMIN_EMAIL || !envVars.ADMIN_PASSWORD || !envVars.ADMIN_NAME) {
+      console.warn("⚠️ Admin credentials are not fully configured. Skipping admin seed.");
+      return;
+    }
+
     const isAdminExist = await prisma.user.findFirst({
       where: {
         role: UserRole.ADMIN,
@@ -34,11 +39,15 @@ export const seedAdmin = async () => {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || "Failed to sign up admin");
+      throw new Error((errorData as { message?: string })?.message || "Failed to sign up admin");
     }
 
-    const data = await response.json();
-    const userId = data.user.id;
+    const data = (await response.json()) as { user?: { id?: string } };
+    const userId = data?.user?.id;
+
+    if (!userId) {
+      throw new Error("Admin user was created without a valid user id");
+    }
 
     await prisma.user.update({
       where: {
@@ -68,19 +77,8 @@ export const seedAdmin = async () => {
         });
         console.log("Cleaned up partial admin creation.");
       }
-    } catch (deleteError) {
+    } catch {
       // Ignore cleanup error
     }
   }
 };
-
-if (require.main === module) {
-  seedAdmin()
-    .catch((e) => {
-      console.error("❌ seedAdmin error:", e);
-      process.exit(1);
-    })
-    .finally(async () => {
-      await prisma.$disconnect();
-    });
-}

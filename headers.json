@@ -1,0 +1,18 @@
+{
+  "url": "/api/auth/sign-up/email",
+  "headers": {
+    "host": "localhost:5000",
+    "connection": "keep-alive",
+    "origin": "http://localhost:3000",
+    "x-forwarded-host": "localhost:3000",
+    "content-type": "application/json",
+    "accept": "*/*",
+    "accept-language": "*",
+    "sec-fetch-mode": "cors",
+    "user-agent": "node",
+    "accept-encoding": "gzip, deflate",
+    "content-length": "64"
+  },
+  "ips": [],
+  "ip": "::1"
+}
