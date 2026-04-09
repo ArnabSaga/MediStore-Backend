@@ -28,10 +28,9 @@ model OrderItem {
   quantity   Int
   price      Decimal @db.Decimal(10, 2)
 
-  // Snapshot fields for v2 stability
-  medicineName String
-  medicineSlug String
-  manufacturer String
+  medicineName String?
+  medicineSlug String?
+  manufacturer String?
   imageUrl     String?
 
   order    Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)

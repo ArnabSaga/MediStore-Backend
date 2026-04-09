@@ -24,7 +24,7 @@ app.use(
 );
 
 //* Auth routes (better-auth)
-app.all("/api/auth/*splat", toNodeHandler(auth));
+app.all(/^\/api\/auth(\/.*)?$/, toNodeHandler(auth));
 
 //* API Routes
 app.use("/api/v1", router);

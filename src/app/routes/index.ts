@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { CategoryRouter } from "../modules/categories/category.route";
+import { AdminCategoryRouter, CategoryRouter } from "../modules/categories/category.route";
 import {
   AdminMedicineRouter,
   MedicineRouter,
@@ -19,6 +19,7 @@ const router = Router();
 const moduleRoutes: TModuleRoutes[] = [
   { path: "/users", route: UserRouter },
   { path: "/categories", route: CategoryRouter },
+  { path: "/admin/categories", route: AdminCategoryRouter },
   { path: "/reviews", route: ReviewRouter },
   { path: "/medicines", route: MedicineRouter },
   { path: "/seller/medicines", route: SellerMedicineRouter },

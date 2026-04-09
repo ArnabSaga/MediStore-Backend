@@ -16,11 +16,23 @@ const validateRequest = (schema: TValidationSchema) => {
       }
 
       if (schema.query) {
-        req.query = schema.query.parse(req.query) as any;
+        const parsedQuery = schema.query.parse(req.query);
+        Object.defineProperty(req, "query", {
+          value: parsedQuery,
+          writable: true,
+          configurable: true,
+          enumerable: true,
+        });
       }
 
       if (schema.params) {
-        req.params = schema.params.parse(req.params) as any;
+        const parsedParams = schema.params.parse(req.params);
+        Object.defineProperty(req, "params", {
+          value: parsedParams,
+          writable: true,
+          configurable: true,
+          enumerable: true,
+        });
       }
 
       next();
