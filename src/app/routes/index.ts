@@ -8,6 +8,7 @@ import {
 import { AdminOrderRouter, OrderRouter, SellerOrderRouter } from "../modules/orders/order.route";
 import { ReviewRouter } from "../modules/reviews/review.route";
 import { AdminUserRouter, UserRouter } from "../modules/users/user.route";
+import { UploadRouter } from "../modules/uploads/upload.route";
 
 type TModuleRoutes = {
   path: string;
@@ -18,6 +19,7 @@ const router = Router();
 
 const moduleRoutes: TModuleRoutes[] = [
   { path: "/users", route: UserRouter },
+  { path: "/uploads", route: UploadRouter },
   { path: "/categories", route: CategoryRouter },
   { path: "/admin/categories", route: AdminCategoryRouter },
   { path: "/reviews", route: ReviewRouter },

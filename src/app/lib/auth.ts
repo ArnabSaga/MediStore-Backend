@@ -18,34 +18,67 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+function toOrigin(value?: string | null): string | null {
+  if (!value) return null;
+
+  try {
+    return new URL(value).origin;
+  } catch {
+    return null;
+  }
+}
+
+const trustedOrigins: string[] = Array.from(
+  new Set(
+    [
+      toOrigin(envVars.FRONTEND_URL),
+      "http://localhost:3000",
+      "http://127.0.0.1:3000",
+      "http://[::1]:3000",
+    ].filter((value): value is string => Boolean(value))
+  )
+);
+
+const frontendBase = toOrigin(envVars.FRONTEND_URL) || "http://localhost:3000";
+
+console.log("Better Auth config:", {
+  NODE_ENV: envVars.NODE_ENV,
+  BETTER_AUTH_URL: envVars.BETTER_AUTH_URL,
+  FRONTEND_URL: envVars.FRONTEND_URL,
+  trustedOrigins,
+});
+
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
 
+  // This must point to the actual backend auth endpoint
   baseURL: envVars.BETTER_AUTH_URL,
-  trustedOrigins: [envVars.FRONTEND_URL, envVars.BETTER_AUTH_URL].filter(Boolean),
+
+  // These are the frontend origins allowed to call auth
+  trustedOrigins,
 
   emailAndPassword: {
     enabled: true,
     autoSignIn: false,
-    requireEmailVerification: true,
+    requireEmailVerification: false,
   },
 
   emailVerification: {
     sendOnSignUp: true,
     autoSignInAfterVerification: true,
     sendVerificationEmail: async ({ user, token }) => {
-      const verificationUrl = `${envVars.FRONTEND_URL}/verify-email?token=${token}`;
+      const verificationUrl = `${frontendBase}/verify-email?token=${token}`;
 
       const info = await transporter.sendMail({
-        from: `"Medi-Store" <${envVars.EMAIL_SENDER.SMTP_FROM}>`,
+        from: `"MediStore" <${envVars.EMAIL_SENDER.SMTP_FROM}>`,
         to: user.email,
-        subject: "Please verify your email!",
+        subject: "Please verify your email",
         html: getVerificationEmailHtml(verificationUrl, user.email),
       });
 
-      console.log("Email sent:", info.messageId);
+      console.log("Verification email sent:", info.messageId);
     },
   },
 
@@ -96,6 +129,7 @@ export const auth = betterAuth({
 
   advanced: {
     useSecureCookies: envVars.NODE_ENV === "production",
+    trustProxy: true,
     cookies: {
       session_token: {
         name: "mediStore_session",
@@ -103,6 +137,7 @@ export const auth = betterAuth({
           httpOnly: true,
           secure: envVars.NODE_ENV === "production",
           sameSite: "lax",
+          path: "/",
         },
       },
     },

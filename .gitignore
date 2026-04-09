@@ -7,3 +7,5 @@ build
 /src/generated
 .DS_Store
 .vercel
+
+.vercel
