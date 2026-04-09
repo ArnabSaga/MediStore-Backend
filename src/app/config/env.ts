@@ -81,37 +81,36 @@ const loadEnvVariables = (): EnvConfig => {
   const productionAuthUrl =
     process.env.BETTER_AUTH_URL || "https://medi-store-backend.vercel.app/api/auth";
   const productionGoogleCallbackUrl =
-    process.env.GOOGLE_CALLBACK_URL ||
-    "https://medi-store-backend.vercel.app/api/auth/callback/google";
+    process.env.GOOGLE_CALLBACK_URL || "https://medi-store-backend.vercel.app/api/auth/callback/google";
 
   return {
     NODE_ENV: nodeEnv,
-    PORT: process.env.PORT || "5000",
+    PORT: process.env.PORT as string,
     DATABASE_URL: process.env.DATABASE_URL as string,
     BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET as string,
     BETTER_AUTH_URL: isDev ? localAuthUrl : productionAuthUrl,
     FRONTEND_URL: isDev ? localFrontendUrl : productionFrontendUrl,
     EMAIL_SENDER: {
-      SMTP_HOST: process.env.EMAIL_SENDER_SMTP_HOST || "",
-      SMTP_PORT: process.env.EMAIL_SENDER_SMTP_PORT || "587",
-      SMTP_USER: process.env.EMAIL_SENDER_SMTP_USER || "",
-      SMTP_PASS: process.env.EMAIL_SENDER_SMTP_PASS || "",
-      SMTP_FROM: process.env.EMAIL_SENDER_SMTP_FROM || "",
+      SMTP_HOST: process.env.EMAIL_SENDER_SMTP_HOST as string,
+      SMTP_PORT: process.env.EMAIL_SENDER_SMTP_PORT as string,
+      SMTP_USER: process.env.EMAIL_SENDER_SMTP_USER as string,
+      SMTP_PASS: process.env.EMAIL_SENDER_SMTP_PASS as string,
+      SMTP_FROM: process.env.EMAIL_SENDER_SMTP_FROM as string,
     },
-    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || "",
-    GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || "",
+    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID as string,
+    GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET as string,
     GOOGLE_CALLBACK_URL: isDev ? localGoogleCallbackUrl : productionGoogleCallbackUrl,
     CLOUDINARY: {
-      CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME || "",
-      CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY || "",
-      CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET || "",
-      USER_PROFILE_FOLDER: process.env.USER_PROFILE_FOLDER || "medistore/profiles",
-      MEDICINE_FOLDER: process.env.MEDICINE_FOLDER || "medistore/medicines",
-      CATEGORY_FOLDER: process.env.CATEGORY_FOLDER || "medistore/categories",
+      CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME as string,
+      CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY as string,
+      CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET as string,
+      USER_PROFILE_FOLDER: process.env.USER_PROFILE_FOLDER as string,
+      MEDICINE_FOLDER: process.env.MEDICINE_FOLDER as string,
+      CATEGORY_FOLDER: process.env.CATEGORY_FOLDER as string,
     },
-    ADMIN_NAME: process.env.ADMIN_NAME || "",
-    ADMIN_EMAIL: process.env.ADMIN_EMAIL || "",
-    ADMIN_PASSWORD: process.env.ADMIN_PASSWORD || "",
+    ADMIN_NAME: process.env.ADMIN_NAME as string,
+    ADMIN_EMAIL: process.env.ADMIN_EMAIL as string,
+    ADMIN_PASSWORD: process.env.ADMIN_PASSWORD as string,
   };
 };
 

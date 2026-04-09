@@ -26,12 +26,6 @@ async function main() {
       console.error("❌ Database connection failed:", dbError);
     }
 
-    try {
-      await seedAdmin();
-      console.log("✅ Admin seeding check complete");
-    } catch (seedError) {
-      console.warn("⚠️ Admin seeding failed (this might be normal if already seeded):", seedError);
-    }
     if (process.env.VERCEL) {
       console.log("🚀 Server running in Vercel Serverless environment");
     } else {

@@ -10,6 +10,7 @@
     "migrate": "prisma migrate dev",
     "generate": "prisma generate",
     "studio": "prisma studio",
+    "seed:admin": "tsx src/app/utils/runSeedAdmin.ts",
     "lint": "tsc --noEmit"
   },
   "keywords": [],

@@ -1,6 +1,5 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { oAuthProxy } from "better-auth/plugins";
 import nodemailer from "nodemailer";
 
 import { envVars } from "../config/env";
@@ -62,7 +61,7 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     autoSignIn: false,
-    requireEmailVerification: false,
+    requireEmailVerification: true,
   },
 
   emailVerification: {
@@ -125,11 +124,11 @@ export const auth = betterAuth({
     },
   },
 
-  plugins: [oAuthProxy()],
+  plugins: [],
 
   advanced: {
     useSecureCookies: envVars.NODE_ENV === "production",
-    trustProxy: true,
+    trustedProxyHeaders: true,
     cookies: {
       session_token: {
         name: "mediStore_session",
