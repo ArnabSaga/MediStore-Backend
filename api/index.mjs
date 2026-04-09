@@ -1,65 +1,65 @@
-// src/app.ts
-import express6 from "express";
-import cors from "cors";
-import { toNodeHandler } from "better-auth/node";
-
-// src/lib/auth.ts
-import { betterAuth } from "better-auth";
-import { prismaAdapter } from "better-auth/adapters/prisma";
-
-// src/lib/prisma.ts
-import "dotenv/config";
-import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "@prisma/client";
-import { Pool } from "pg";
-var connectionString = process.env.DATABASE_URL;
-if (!connectionString) throw new Error("DATABASE_URL is not set");
-var pool = new Pool({ connectionString });
-var adapter = new PrismaPg(pool);
-var prisma = new PrismaClient({ adapter });
-
-// src/lib/auth.ts
-import nodemailer from "nodemailer";
-
-// src/lib/mail-template.ts
-var getVerificationEmailHtml = (url, userEmail) => {
-  return `
+var Er=Object.defineProperty;var ut=(e=>typeof require<"u"?require:typeof Proxy<"u"?new Proxy(e,{get:(t,r)=>(typeof require<"u"?require:t)[r]}):e)(function(e){if(typeof require<"u")return require.apply(this,arguments);throw Error('Dynamic require of "'+e+'" is not supported')});var Rr=(e,t)=>{for(var r in t)Er(e,r,{get:t[r],enumerable:!0})};import{toNodeHandler as Tn}from"better-auth/node";import On from"cors";import yr from"express";import{betterAuth as ui}from"better-auth";import{prismaAdapter as ci}from"better-auth/adapters/prisma";import{oAuthProxy as mi}from"better-auth/plugins";import pi from"nodemailer";import Tr from"dotenv";import Or from"http-status";var Ge=class extends Error{statusCode;isOperational;constructor(t,r){super(r),this.statusCode=t,this.isOperational=!0,Error.captureStackTrace(this,this.constructor)}},s=Ge;Tr.config();var Sr=()=>(["NODE_ENV","PORT","DATABASE_URL","BETTER_AUTH_SECRET","BETTER_AUTH_URL","FRONTEND_URL","EMAIL_SENDER_SMTP_USER","EMAIL_SENDER_SMTP_PASS","EMAIL_SENDER_SMTP_HOST","EMAIL_SENDER_SMTP_PORT","EMAIL_SENDER_SMTP_FROM","GOOGLE_CLIENT_ID","GOOGLE_CLIENT_SECRET","GOOGLE_CALLBACK_URL","CLOUDINARY_CLOUD_NAME","CLOUDINARY_API_KEY","CLOUDINARY_API_SECRET","ADMIN_NAME","ADMIN_EMAIL","ADMIN_PASSWORD"].forEach(t=>{if(!process.env[t])throw new s(Or.INTERNAL_SERVER_ERROR,`Environment variable {${t}} is required but not defined in .env file.`)}),{NODE_ENV:process.env.NODE_ENV||"development",PORT:process.env.PORT||"5000",DATABASE_URL:process.env.DATABASE_URL,BETTER_AUTH_SECRET:process.env.BETTER_AUTH_SECRET,BETTER_AUTH_URL:process.env.BETTER_AUTH_URL,FRONTEND_URL:process.env.FRONTEND_URL,EMAIL_SENDER:{SMTP_HOST:process.env.EMAIL_SENDER_SMTP_HOST,SMTP_PORT:process.env.EMAIL_SENDER_SMTP_PORT,SMTP_USER:process.env.EMAIL_SENDER_SMTP_USER,SMTP_PASS:process.env.EMAIL_SENDER_SMTP_PASS,SMTP_FROM:process.env.EMAIL_SENDER_SMTP_FROM},GOOGLE_CLIENT_ID:process.env.GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET:process.env.GOOGLE_CLIENT_SECRET,GOOGLE_CALLBACK_URL:process.env.GOOGLE_CALLBACK_URL,CLOUDINARY:{CLOUDINARY_CLOUD_NAME:process.env.CLOUDINARY_CLOUD_NAME,CLOUDINARY_API_KEY:process.env.CLOUDINARY_API_KEY,CLOUDINARY_API_SECRET:process.env.CLOUDINARY_API_SECRET,USER_PROFILE_FOLDER:process.env.USER_PROFILE_FOLDER||"medistore/profiles",MEDICINE_FOLDER:process.env.MEDICINE_FOLDER||"medistore/medicines",CATEGORY_FOLDER:process.env.CATEGORY_FOLDER||"medistore/categories"},ADMIN_NAME:process.env.ADMIN_NAME,ADMIN_EMAIL:process.env.ADMIN_EMAIL,ADMIN_PASSWORD:process.env.ADMIN_PASSWORD}),E=Sr();var l={CUSTOMER:"CUSTOMER",SELLER:"SELLER",ADMIN:"ADMIN"},re=Object.values(l);var ct=(e,t)=>`
   <!DOCTYPE html>
   <html lang="en">
   <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Verify Your Email</title>
+      <style>
+          @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+          body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+      </style>
   </head>
-  <body style="margin: 0; padding: 0; font-family: Arial, sans-serif; background-color: #f4f4f4;">
+  <body style="margin: 0; padding: 0; background-color: #F9FAFB; color: #374151;">
       <table role="presentation" style="width: 100%; border-collapse: collapse;">
           <tr>
-              <td style="padding: 40px 0; text-align: center;">
-                  <table role="presentation" style="width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+              <td style="padding: 48px 0; text-align: center;">
+                  <table role="presentation" style="width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; border: 1px solid #E5E7EB; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);">
+                      <!-- Header -->
                       <tr>
-                          <td style="padding: 40px 40px 20px; text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px 8px 0 0;">
-                              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">Medi Store</h1>
+                          <td style="padding: 32px; text-align: center; background-color: #0D9488;">
+                              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700; letter-spacing: -0.025em;">MediStore</h1>
                           </td>
                       </tr>
+
+                      <!-- Content -->
                       <tr>
-                          <td style="padding: 40px;">
-                              <h2 style="margin: 0 0 20px; color: #333333; font-size: 24px; font-weight: bold;">Verify Your Email Address</h2>
-                              <p style="margin: 0 0 20px; color: #666666; font-size: 16px; line-height: 1.5;">
-                                  Thanks for signing up for Medi Store! Please verify your email address to complete your registration.
+                          <td style="padding: 48px 40px;">
+                              <h2 style="margin: 0 0 16px; color: #111827; font-size: 24px; font-weight: 700;">Verify your email address</h2>
+                              <p style="margin: 0 0 24px; color: #4B5563; font-size: 16px; line-height: 1.6;">
+                                  Welcome to MediStore! We're excited to have you on board. To get started, please confirm your email address <strong>${t}</strong> by clicking the button below.
                               </p>
-                              <table role="presentation" style="margin: 0 auto;">
+
+                              <table role="presentation" style="margin: 32px auto;">
                                   <tr>
-                                      <td style="border-radius: 6px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                                          <a href="${url}" style="display: inline-block; padding: 16px 40px; color: #ffffff; text-decoration: none; font-size: 16px; font-weight: bold; border-radius: 6px;">
-                                              Verify Email Address
+                                      <td style="border-radius: 8px; background-color: #0D9488;">
+                                          <a href="${e}" style="display: inline-block; padding: 14px 32px; color: #ffffff; text-decoration: none; font-size: 16px; font-weight: 600; border-radius: 8px;">
+                                              Confirm Email Address
                                           </a>
                                       </td>
                                   </tr>
                               </table>
-                              <p style="margin: 30px 0 20px; color: #666666; font-size: 14px; line-height: 1.5;">
-                                  Or copy and paste this link: <br/>
-                                  <a href="${url}" style="color: #667eea;">${url}</a>
+
+                              <p style="margin: 32px 0 0; color: #9CA3AF; font-size: 14px; line-height: 1.6; text-align: center;">
+                                  If you didn't create an account, you can safely ignore this email.
                               </p>
+                          </td>
+                      </tr>
+
+                      <!-- Footer -->
+                      <tr>
+                          <td style="padding: 32px; background-color: #F3F4F6; text-align: center;">
+                              <p style="margin: 0; color: #6B7280; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;">
+                                  MediStore Pharmacy & Care
+                              </p>
+                              <p style="margin: 8px 0 0; color: #9CA3AF; font-size: 12px;">
+                                  Providing healthcare solutions right at your doorstep.
+                              </p>
+                              <div style="margin-top: 16px;">
+                                  <a href="#" style="color: #0D9488; text-decoration: none; font-size: 12px; margin: 0 8px;">Privacy Policy</a>
+                                  <span style="color: #D1D5DB;">&bull;</span>
+                                  <a href="#" style="color: #0D9488; text-decoration: none; font-size: 12px; margin: 0 8px;">Help Center</a>
+                              </div>
                           </td>
                       </tr>
                   </table>
@@ -68,2075 +68,278 @@ var getVerificationEmailHtml = (url, userEmail) => {
       </table>
   </body>
   </html>
-  `;
-};
+  `;import"dotenv/config";import{PrismaPg as oi}from"@prisma/adapter-pg";import*as gt from"path";import{fileURLToPath as ai}from"url";import*as mt from"@prisma/client/runtime/client";var He={previewFeatures:[],clientVersion:"7.3.0",engineVersion:"9d6ad21cbbceab97458517b147a6a09ff43aa735",activeProvider:"postgresql",inlineSchema:`model User {
+  id            String    @id @default(uuid())
+  name          String    @db.VarChar(255)
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  phone         String?
+  role          Role      @default(CUSTOMER)
+  isBanned      Boolean   @default(false)
+  isActive      Boolean   @default(true)
+  isDeleted     Boolean   @default(false)
+  deletedAt     DateTime?
 
-// src/lib/auth.ts
-var transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 587,
-  secure: false,
-  auth: {
-    user: process.env.APP_USER,
-    pass: process.env.APP_PASS
-  }
-});
-var auth = betterAuth({
-  database: prismaAdapter(prisma, {
-    provider: "postgresql"
-  }),
-  user: {
-    additionalFields: {
-      role: {
-        type: "string",
-        defaultValue: "CUSTOMER"
-      },
-      isBanned: {
-        type: "boolean",
-        defaultValue: false
-      },
-      phone: {
-        type: "string",
-        defaultValue: ""
-      }
-    }
-  },
-  trustedOrigins: [process.env.APP_URL, process.env.API_URL].filter(Boolean),
-  emailAndPassword: {
-    enabled: true,
-    autoSignIn: false,
-    requireEmailVerification: true
-  },
-  emailVerification: {
-    sendOnSignUp: true,
-    autoSignInAfterVerification: true,
-    sendVerificationEmail: async ({ user, url, token }, request) => {
-      try {
-        const verificationUrl = `${process.env.APP_URL}/verify-email?token=${token}`;
-        const info = await transporter.sendMail({
-          from: '"Medi-Store" <medi-store@gmail.com>',
-          to: user.email,
-          subject: "Please verify your email!",
-          html: getVerificationEmailHtml(verificationUrl, user.email)
-        });
-        console.log("Email sent:", info.messageId);
-      } catch (error) {
-        console.error("Error sending email:", error);
-        throw error;
-      }
-    }
-  },
-  socialProviders: {
-    google: {
-      prompt: "select_account consent",
-      accessType: "offline",
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET
-    }
-  }
-});
+  medicines        Medicine[]  @relation("SellerMedicines")
+  orders           Order[]     @relation("CustomerOrders")
+  sellerOrderItems OrderItem[] @relation("SellerOrderItems")
+  reviews          Review[]
+  sessions         Session[]
+  accounts         Account[]
 
-// src/modules/users/user.route.ts
-import express from "express";
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-// src/middleware/auth.middleware.ts
-import { fromNodeHeaders } from "better-auth/node";
-var isValidUserRole = (role) => {
-  return role === "CUSTOMER" /* CUSTOMER */ || role === "SELLER" /* SELLER */ || role === "ADMIN" /* ADMIN */;
-};
-var auth2 = (options = {}) => {
-  const { roles = [], requireVerifiedEmail = false } = options;
-  return async (req, res, next) => {
-    try {
-      const session = await auth.api.getSession({
-        headers: fromNodeHeaders(req.headers)
-      });
-      if (!session) {
-        throw Object.assign(new Error("Unauthorized. Please login."), {
-          statusCode: 401
-        });
-      }
-      const userRole = session.user.role;
-      if (!isValidUserRole(userRole)) {
-        throw Object.assign(new Error("Invalid user role in session."), {
-          statusCode: 401
-        });
-      }
-      if (session.user.isBanned) {
-        throw Object.assign(
-          new Error("Your account is banned. Access denied."),
-          { statusCode: 403 }
-        );
-      }
-      req.user = {
-        id: session.user.id,
-        email: session.user.email,
-        name: session.user.name,
-        role: userRole,
-        emailVerified: session.user.emailVerified,
-        isBanned: session.user.isBanned
-      };
-      if (requireVerifiedEmail && !req.user.emailVerified) {
-        throw Object.assign(
-          new Error("Email verification required. Please check your inbox."),
-          { statusCode: 403 }
-        );
-      }
-      if (roles.length && !roles.includes(userRole)) {
-        throw Object.assign(new Error("Forbidden. Insufficient permissions."), {
-          statusCode: 403
-        });
-      }
-      next();
-    } catch (error) {
-      next(error);
-    }
-  };
-};
-var auth_middleware_default = auth2;
-
-// src/modules/users/user.service.ts
-var getUserById = async (id) => {
-  if (!id) {
-    throw Object.assign(new Error("User id is required"), { statusCode: 400 });
-  }
-  const result = await prisma.user.findUniqueOrThrow({
-    where: { id },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      emailVerified: true,
-      phone: true,
-      image: true,
-      role: true,
-      isBanned: true,
-      createdAt: true
-    }
-  });
-  return result;
-};
-var updateUserProfile = async (id, payload) => {
-  if (!id) {
-    throw Object.assign(new Error("User id is required"), { statusCode: 400 });
-  }
-  const cleanData = {};
-  Object.keys(payload).forEach(
-    (key) => {
-      const value = payload[key];
-      if (value !== void 0) {
-        cleanData[key] = value;
-      }
-    }
-  );
-  if (Object.keys(cleanData).length === 0) {
-    throw Object.assign(new Error("No fields to update"), { statusCode: 400 });
-  }
-  const result = await prisma.user.update({
-    where: { id },
-    data: cleanData,
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      phone: true,
-      image: true,
-      role: true,
-      createdAt: true
-    }
-  });
-  return result;
-};
-var getAllUsers = async (role, isBanned) => {
-  const where = {};
-  if (role) {
-    const validRoles = ["CUSTOMER", "SELLER", "ADMIN"];
-    if (!validRoles.includes(role)) {
-      throw Object.assign(
-        new Error(`Invalid role. Must be one of: ${validRoles.join(", ")}`),
-        { statusCode: 400 }
-      );
-    }
-    where.role = role;
-  }
-  if (isBanned !== void 0) {
-    where.isBanned = isBanned;
-  }
-  const result = await prisma.user.findMany({
-    where,
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      phone: true,
-      role: true,
-      isBanned: true,
-      createdAt: true
-    },
-    orderBy: { createdAt: "desc" }
-  });
-  return result;
-};
-var updateUserStatus = async (id, isBanned) => {
-  if (!id) {
-    throw Object.assign(new Error("User id is required"), { statusCode: 400 });
-  }
-  const result = await prisma.user.update({
-    where: { id },
-    data: { isBanned },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-      isBanned: true
-    }
-  });
-  return result;
-};
-var changeUserRole = async (id, role) => {
-  if (!id) {
-    throw Object.assign(new Error("User id is required"), { statusCode: 400 });
-  }
-  const validRoles = ["CUSTOMER", "SELLER", "ADMIN"];
-  if (!validRoles.includes(role)) {
-    throw Object.assign(
-      new Error(`Invalid role. Must be one of: ${validRoles.join(", ")}`),
-      { statusCode: 400 }
-    );
-  }
-  const result = await prisma.user.update({
-    where: { id },
-    data: { role },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true
-    }
-  });
-  return result;
-};
-var deleteUser = async (id, currentUserId) => {
-  if (!id) {
-    throw Object.assign(new Error("User id is required"), { statusCode: 400 });
-  }
-  if (currentUserId && id === currentUserId) {
-    throw Object.assign(new Error("Cannot delete your own account"), {
-      statusCode: 403
-    });
-  }
-  await prisma.user.delete({ where: { id } });
-};
-var UserService = {
-  getUserById,
-  updateUserProfile,
-  getAllUsers,
-  updateUserStatus,
-  changeUserRole,
-  deleteUser
-};
-
-// src/modules/users/user.controller.ts
-var getCurrentUser = async (req, res, next) => {
-  try {
-    const userId = req.user?.id;
-    if (!userId) {
-      throw Object.assign(new Error("Unauthorized"), { statusCode: 401 });
-    }
-    const result = await UserService.getUserById(userId);
-    res.status(200).json({
-      success: true,
-      message: "User fetched successfully",
-      data: result
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-var updateUserProfile2 = async (req, res, next) => {
-  try {
-    const userId = req.user?.id;
-    if (!userId) {
-      throw Object.assign(new Error("Unauthorized"), { statusCode: 401 });
-    }
-    const result = await UserService.updateUserProfile(userId, req.body);
-    res.status(200).json({
-      success: true,
-      message: "Profile updated successfully",
-      data: result
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-var getAllUsers2 = async (req, res, next) => {
-  try {
-    const role = typeof req.query.role === "string" ? req.query.role : void 0;
-    let isBanned = void 0;
-    if (typeof req.query.isBanned === "string") {
-      if (req.query.isBanned !== "true" && req.query.isBanned !== "false") {
-        throw Object.assign(new Error("isBanned must be 'true' or 'false'"), {
-          statusCode: 400
-        });
-      }
-      isBanned = req.query.isBanned === "true";
-    }
-    const result = await UserService.getAllUsers(role, isBanned);
-    res.status(200).json({
-      success: true,
-      message: "Users fetched successfully",
-      data: result
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-var getUserById2 = async (req, res, next) => {
-  try {
-    const id = String(req.params.id);
-    if (!id) {
-      throw Object.assign(new Error("User id is required"), {
-        statusCode: 400
-      });
-    }
-    const result = await UserService.getUserById(id);
-    res.status(200).json({
-      success: true,
-      message: "User fetched successfully",
-      data: result
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-var updateUserStatus2 = async (req, res, next) => {
-  try {
-    const id = String(req.params.id);
-    const { isBanned } = req.body;
-    if (typeof isBanned !== "boolean") {
-      throw Object.assign(new Error("isBanned must be a boolean"), {
-        statusCode: 400
-      });
-    }
-    const result = await UserService.updateUserStatus(id, isBanned);
-    res.status(200).json({
-      success: true,
-      message: "User status updated successfully",
-      data: result
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-var changeRole = async (req, res, next) => {
-  try {
-    const id = String(req.params.id);
-    const { role } = req.body;
-    if (typeof role !== "string") {
-      throw Object.assign(new Error("role must be a string"), {
-        statusCode: 400
-      });
-    }
-    const result = await UserService.changeUserRole(id, role);
-    res.status(200).json({
-      success: true,
-      message: "User role changed successfully",
-      data: result
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-var deleteUser2 = async (req, res, next) => {
-  try {
-    const id = String(req.params.id);
-    const currentUserId = req.user?.id;
-    await UserService.deleteUser(id, currentUserId);
-    res.status(200).json({
-      success: true,
-      message: "User deleted successfully"
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-var UserController = {
-  getCurrentUser,
-  updateUserProfile: updateUserProfile2,
-  getAllUsers: getAllUsers2,
-  getUserById: getUserById2,
-  updateUserStatus: updateUserStatus2,
-  changeRole,
-  deleteUser: deleteUser2
-};
-
-// src/modules/users/user.route.ts
-var userRouter = express.Router();
-userRouter.get(
-  "/me",
-  auth_middleware_default({
-    roles: ["CUSTOMER" /* CUSTOMER */, "SELLER" /* SELLER */, "ADMIN" /* ADMIN */],
-    requireVerifiedEmail: true
-  }),
-  UserController.getCurrentUser
-);
-userRouter.put(
-  "/profile",
-  auth_middleware_default({
-    roles: ["CUSTOMER" /* CUSTOMER */, "SELLER" /* SELLER */, "ADMIN" /* ADMIN */],
-    requireVerifiedEmail: true
-  }),
-  UserController.updateUserProfile
-);
-var adminUserRouter = express.Router();
-adminUserRouter.get(
-  "/",
-  auth_middleware_default({ roles: ["ADMIN" /* ADMIN */] }),
-  UserController.getAllUsers
-);
-adminUserRouter.get(
-  "/:id",
-  auth_middleware_default({ roles: ["ADMIN" /* ADMIN */] }),
-  UserController.getUserById
-);
-adminUserRouter.patch(
-  "/:id/status",
-  auth_middleware_default({ roles: ["ADMIN" /* ADMIN */] }),
-  UserController.updateUserStatus
-);
-adminUserRouter.patch(
-  "/:id/role",
-  auth_middleware_default({ roles: ["ADMIN" /* ADMIN */] }),
-  UserController.changeRole
-);
-adminUserRouter.delete(
-  "/:id",
-  auth_middleware_default({ roles: ["ADMIN" /* ADMIN */] }),
-  UserController.deleteUser
-);
-var UserRouter = userRouter;
-var AdminUserRouter = adminUserRouter;
-
-// src/modules/categories/category.route.ts
-import express2 from "express";
-
-// src/helpers/generateSlug.ts
-var generateSlug = (name) => {
-  return name.toLowerCase().trim().replace(/[^\w\s-]/g, "").replace(/\s+/g, "-").replace(/-+/g, "-");
-};
-
-// src/modules/categories/category.service.ts
-var ALLOWED_CATEGORY_SORT_FIELDS = /* @__PURE__ */ new Set(["createdAt", "name", "slug"]);
-var createCategory = async (payload) => {
-  if (!payload.name || !payload.slug) {
-    throw Object.assign(new Error("Category name and slug are required"), {
-      statusCode: 400
-    });
-  }
-  const name = payload.name.trim();
-  const slug = generateSlug(payload.slug);
-  const existing = await prisma.category.findFirst({
-    where: {
-      OR: [{ slug }, { name }]
-    },
-    select: { id: true, name: true, slug: true }
-  });
-  if (existing) {
-    throw Object.assign(
-      new Error("Category with this name or slug already exists"),
-      {
-        statusCode: 409
-      }
-    );
-  }
-  return prisma.category.create({
-    data: {
-      name,
-      slug,
-      ...payload.description !== void 0 ? { description: payload.description } : {}
-    }
-  });
-};
-var getAllCategories = async (pagination) => {
-  const sortBy = ALLOWED_CATEGORY_SORT_FIELDS.has(pagination.sortBy) ? pagination.sortBy : "createdAt";
-  const [data, total] = await prisma.$transaction([
-    prisma.category.findMany({
-      skip: pagination.skip,
-      take: pagination.limit,
-      include: {
-        medicines: {
-          where: { isActive: true },
-          select: { id: true, name: true, price: true }
-        }
-      },
-      orderBy: { [sortBy]: pagination.sortOrder }
-    }),
-    prisma.category.count()
-  ]);
-  return {
-    meta: {
-      page: pagination.page,
-      limit: pagination.limit,
-      total,
-      totalPages: Math.ceil(total / pagination.limit)
-    },
-    data
-  };
-};
-var getCategoryById = async (id) => {
-  return prisma.category.findUniqueOrThrow({
-    where: { id },
-    include: {
-      medicines: {
-        where: { isActive: true }
-      }
-    }
-  });
-};
-var getCategoryBySlug = async (slug) => {
-  return prisma.category.findUniqueOrThrow({
-    where: { slug },
-    include: {
-      medicines: { where: { isActive: true } }
-    }
-  });
-};
-var updateCategory = async (id, payload) => {
-  const nextPayload = { ...payload };
-  if (nextPayload.name && !nextPayload.slug) {
-    nextPayload.slug = generateSlug(nextPayload.name);
-  }
-  if (nextPayload.slug) {
-    const existing = await prisma.category.findUnique({
-      where: { slug: nextPayload.slug },
-      select: { id: true }
-    });
-    if (existing && existing.id !== id) {
-      throw Object.assign(new Error("Category with this slug already exists"), {
-        statusCode: 409
-      });
-    }
-  }
-  const cleanData = {};
-  Object.entries(nextPayload).forEach(([key, value]) => {
-    if (value !== void 0) cleanData[key] = value;
-  });
-  if (Object.keys(cleanData).length === 0) {
-    throw Object.assign(new Error("No fields to update"), { statusCode: 400 });
-  }
-  return prisma.category.update({
-    where: { id },
-    data: cleanData
-  });
-};
-var deleteCategory = async (id) => {
-  const medicinesCount = await prisma.medicine.count({
-    where: { categoryId: id }
-  });
-  if (medicinesCount > 0) {
-    throw Object.assign(
-      new Error(
-        `Cannot delete category with ${medicinesCount} medicine(s). Delete/reassign medicines first.`
-      ),
-      { statusCode: 409 }
-    );
-  }
-  await prisma.category.delete({ where: { id } });
-};
-var CategoryService = {
-  createCategory,
-  getAllCategories,
-  getCategoryById,
-  getCategoryBySlug,
-  updateCategory,
-  deleteCategory
-};
-
-// src/helpers/paginationSortingHelper.ts
-var MAX_LIMIT = 100;
-var paginationSortingHelper = (options = {}) => {
-  const page = Math.max(1, Number(options.page) || 1);
-  const limit = Math.min(MAX_LIMIT, Math.max(1, Number(options.limit) || 10));
-  const skip = (page - 1) * limit;
-  const sortBy = typeof options.sortBy === "string" && options.sortBy.trim().length > 0 ? options.sortBy.trim() : "createdAt";
-  const sortOrder = options.sortOrder === "asc" ? "asc" : "desc";
-  return { page, limit, skip, sortBy, sortOrder };
-};
-var paginationSortingHelper_default = paginationSortingHelper;
-
-// src/modules/categories/category.controller.ts
-var createCategory2 = async (req, res, next) => {
-  try {
-    const { name, slug, description } = req.body;
-    if (!name || typeof name !== "string" || name.trim().length < 2) {
-      throw Object.assign(new Error("name is required (min 2 chars)"), {
-        statusCode: 400
-      });
-    }
-    const finalSlug = typeof slug === "string" && slug.trim().length > 0 ? generateSlug(slug) : generateSlug(name);
-    const categoryData = {
-      name: name.trim(),
-      slug: finalSlug
-    };
-    if (typeof description === "string" && description.trim().length > 0) {
-      categoryData.description = description.trim();
-    }
-    const result = await CategoryService.createCategory(categoryData);
-    res.status(201).json({
-      success: true,
-      message: "Category created successfully",
-      data: result
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-var getAllCategories2 = async (req, res, next) => {
-  try {
-    const pagination = paginationSortingHelper_default(req.query);
-    const result = await CategoryService.getAllCategories(pagination);
-    res.status(200).json({
-      success: true,
-      message: "Categories fetched successfully",
-      meta: result.meta,
-      data: result.data
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-var getCategoryById2 = async (req, res, next) => {
-  try {
-    const id = String(req.params.id);
-    const result = await CategoryService.getCategoryById(id);
-    res.status(200).json({
-      success: true,
-      message: "Category fetched successfully",
-      data: result
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-var getCategoryBySlug2 = async (req, res, next) => {
-  try {
-    const slug = String(req.params.slug);
-    const result = await CategoryService.getCategoryBySlug(slug);
-    res.status(200).json({
-      success: true,
-      message: "Category fetched successfully",
-      data: result
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-var updateCategory2 = async (req, res, next) => {
-  try {
-    const id = String(req.params.id);
-    const payload = req.body ?? {};
-    if (payload.name !== void 0) {
-      if (typeof payload.name !== "string" || payload.name.trim().length < 2) {
-        throw Object.assign(new Error("name must be a string (min 2 chars)"), {
-          statusCode: 400
-        });
-      }
-      payload.name = payload.name.trim();
-    }
-    if (payload.slug !== void 0) {
-      if (typeof payload.slug !== "string" || payload.slug.trim().length < 2) {
-        throw Object.assign(new Error("slug must be a string (min 2 chars)"), {
-          statusCode: 400
-        });
-      }
-      payload.slug = generateSlug(payload.slug);
-    }
-    if (payload.description !== void 0) {
-      if (payload.description !== null && typeof payload.description !== "string") {
-        throw Object.assign(new Error("description must be a string or null"), {
-          statusCode: 400
-        });
-      }
-      payload.description = typeof payload.description === "string" ? payload.description.trim() : null;
-    }
-    const result = await CategoryService.updateCategory(id, payload);
-    res.status(200).json({
-      success: true,
-      message: "Category updated successfully",
-      data: result
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-var deleteCategory2 = async (req, res, next) => {
-  try {
-    const id = String(req.params.id);
-    await CategoryService.deleteCategory(id);
-    res.status(200).json({
-      success: true,
-      message: "Category deleted successfully"
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-var CategoryController = {
-  createCategory: createCategory2,
-  getAllCategories: getAllCategories2,
-  getCategoryById: getCategoryById2,
-  getCategoryBySlug: getCategoryBySlug2,
-  updateCategory: updateCategory2,
-  deleteCategory: deleteCategory2
-};
-
-// src/modules/categories/category.route.ts
-var router = express2.Router();
-router.get("/", CategoryController.getAllCategories);
-router.get("/by-slug/:slug", CategoryController.getCategoryBySlug);
-router.get("/:id", CategoryController.getCategoryById);
-router.post(
-  "/",
-  auth_middleware_default({ roles: ["ADMIN" /* ADMIN */], requireVerifiedEmail: true }),
-  CategoryController.createCategory
-);
-router.put(
-  "/:id",
-  auth_middleware_default({ roles: ["ADMIN" /* ADMIN */], requireVerifiedEmail: true }),
-  CategoryController.updateCategory
-);
-router.delete(
-  "/:id",
-  auth_middleware_default({ roles: ["ADMIN" /* ADMIN */], requireVerifiedEmail: true }),
-  CategoryController.deleteCategory
-);
-var CategoryRouter = router;
-
-// src/modules/medicines/medicine.route.ts
-import express3 from "express";
-
-// src/modules/medicines/medicine.service.ts
-import { Prisma } from "@prisma/client";
-var ALLOWED_MEDICINE_SORT_FIELDS = /* @__PURE__ */ new Set([
-  "createdAt",
-  "price",
-  "name",
-  "stock"
-]);
-var createMedicine = async (payload) => {
-  const slug = generateSlug(payload.slug);
-  return prisma.medicine.create({
-    data: {
-      name: payload.name,
-      slug,
-      price: new Prisma.Decimal(payload.price),
-      stock: payload.stock,
-      manufacturer: payload.manufacturer,
-      categoryId: payload.categoryId,
-      sellerId: payload.sellerId,
-      ...payload.description !== void 0 ? { description: payload.description } : {},
-      ...payload.imageUrl !== void 0 ? { imageUrl: payload.imageUrl } : {},
-      ...payload.isActive !== void 0 ? { isActive: payload.isActive } : {}
-    },
-    include: {
-      category: true,
-      seller: { select: { id: true, name: true, email: true } }
-    }
-  });
-};
-var getAllMedicines = async (filters, pagination) => {
-  const where = { isActive: true };
-  if (filters.categoryId) where.categoryId = filters.categoryId;
-  if (filters.search) {
-    where.OR = [
-      { name: { contains: filters.search, mode: "insensitive" } },
-      { description: { contains: filters.search, mode: "insensitive" } },
-      { manufacturer: { contains: filters.search, mode: "insensitive" } }
-    ];
-  }
-  if (filters.minPrice !== void 0 || filters.maxPrice !== void 0) {
-    where.price = {};
-    if (filters.minPrice !== void 0)
-      where.price.gte = new Prisma.Decimal(filters.minPrice);
-    if (filters.maxPrice !== void 0)
-      where.price.lte = new Prisma.Decimal(filters.maxPrice);
-  }
-  if (filters.manufacturer) {
-    where.manufacturer = {
-      contains: filters.manufacturer,
-      mode: "insensitive"
-    };
-  }
-  const sortBy = ALLOWED_MEDICINE_SORT_FIELDS.has(pagination.sortBy) ? pagination.sortBy : "createdAt";
-  return prisma.medicine.findMany({
-    where,
-    skip: pagination.skip,
-    take: pagination.limit,
-    include: {
-      category: true,
-      seller: { select: { id: true, name: true } },
-      reviews: { select: { rating: true } }
-    },
-    orderBy: { [sortBy]: pagination.sortOrder }
-  });
-};
-var getMedicineById = async (id) => {
-  return prisma.medicine.findUniqueOrThrow({
-    where: { id },
-    include: {
-      category: true,
-      seller: { select: { id: true, name: true, email: true, phone: true } },
-      reviews: {
-        include: {
-          customer: { select: { id: true, name: true, image: true } }
-        }
-      }
-    }
-  });
-};
-var getSellerMedicines = async (sellerId, includeInactive) => {
-  return prisma.medicine.findMany({
-    where: {
-      sellerId,
-      ...includeInactive ? {} : { isActive: true }
-    },
-    include: {
-      category: true,
-      reviews: { select: { rating: true } }
-    },
-    orderBy: { createdAt: "desc" }
-  });
-};
-var updateMedicineForSeller = async (id, payload, sellerId) => {
-  const medicine = await prisma.medicine.findUniqueOrThrow({ where: { id } });
-  if (medicine.sellerId !== sellerId) {
-    throw Object.assign(
-      new Error("Forbidden: unauthorized to update this medicine"),
-      {
-        statusCode: 403
-      }
-    );
-  }
-  const cleanData = {};
-  if (payload.name !== void 0) {
-    if (typeof payload.name !== "string" || payload.name.trim().length < 2) {
-      throw Object.assign(new Error("name must be at least 2 characters"), {
-        statusCode: 400
-      });
-    }
-    cleanData.name = payload.name.trim();
-  }
-  if (payload.slug !== void 0) {
-    if (typeof payload.slug !== "string" || payload.slug.trim().length < 2) {
-      throw Object.assign(new Error("slug must be at least 2 characters"), {
-        statusCode: 400
-      });
-    }
-    cleanData.slug = generateSlug(payload.slug);
-  } else if (payload.name !== void 0) {
-    cleanData.slug = generateSlug(payload.name);
-  }
-  if (payload.description !== void 0)
-    cleanData.description = payload.description;
-  if (payload.imageUrl !== void 0) cleanData.imageUrl = payload.imageUrl;
-  if (payload.isActive !== void 0) cleanData.isActive = payload.isActive;
-  if (payload.price !== void 0) {
-    if (typeof payload.price !== "number" || Number.isNaN(payload.price) || payload.price <= 0) {
-      throw Object.assign(new Error("price must be a positive number"), {
-        statusCode: 400
-      });
-    }
-    cleanData.price = new Prisma.Decimal(payload.price);
-  }
-  if (payload.stock !== void 0) {
-    if (!Number.isInteger(payload.stock) || payload.stock < 0) {
-      throw Object.assign(new Error("stock must be a non-negative integer"), {
-        statusCode: 400
-      });
-    }
-    cleanData.stock = payload.stock;
-  }
-  if (payload.manufacturer !== void 0) {
-    if (typeof payload.manufacturer !== "string" || payload.manufacturer.trim().length < 2) {
-      throw Object.assign(
-        new Error("manufacturer must be at least 2 characters"),
-        { statusCode: 400 }
-      );
-    }
-    cleanData.manufacturer = payload.manufacturer.trim();
-  }
-  if (payload.categoryId !== void 0) {
-    if (typeof payload.categoryId !== "string" || payload.categoryId.trim().length === 0) {
-      throw Object.assign(new Error("categoryId must be a valid string"), {
-        statusCode: 400
-      });
-    }
-    cleanData.category = { connect: { id: payload.categoryId } };
-  }
-  if (Object.keys(cleanData).length === 0) {
-    throw Object.assign(new Error("No fields to update"), { statusCode: 400 });
-  }
-  return prisma.medicine.update({
-    where: { id },
-    data: cleanData,
-    include: {
-      category: true,
-      seller: { select: { id: true, name: true } }
-    }
-  });
-};
-var deleteMedicineForSeller = async (id, sellerId) => {
-  const medicine = await prisma.medicine.findUniqueOrThrow({ where: { id } });
-  if (medicine.sellerId !== sellerId) {
-    throw Object.assign(
-      new Error("Forbidden: unauthorized to delete this medicine"),
-      {
-        statusCode: 403
-      }
-    );
-  }
-  await prisma.medicine.delete({ where: { id } });
-};
-var updateMedicineAsAdmin = async (id, payload) => {
-  return updateMedicineForSeller(
-    id,
-    payload,
-    (await prisma.medicine.findUniqueOrThrow({ where: { id } })).sellerId
-  );
-};
-var deleteMedicineAsAdmin = async (id) => {
-  await prisma.medicine.delete({ where: { id } });
-};
-var MedicineService = {
-  createMedicine,
-  getAllMedicines,
-  getMedicineById,
-  getSellerMedicines,
-  updateMedicineForSeller,
-  deleteMedicineForSeller,
-  updateMedicineAsAdmin,
-  deleteMedicineAsAdmin
-};
-
-// src/modules/medicines/medicine.controller.ts
-var createMedicine2 = async (req, res, next) => {
-  try {
-    const sellerId = req.user?.id;
-    if (!sellerId)
-      throw Object.assign(new Error("Unauthorized"), { statusCode: 401 });
-    const {
-      name,
-      price,
-      stock,
-      manufacturer,
-      categoryId,
-      slug,
-      description,
-      imageUrl,
-      isActive
-    } = req.body;
-    if (!name || typeof name !== "string" || name.trim().length < 2) {
-      throw Object.assign(new Error("name is required (min 2 chars)"), {
-        statusCode: 400
-      });
-    }
-    if (typeof price !== "number" || Number.isNaN(price) || price <= 0) {
-      throw Object.assign(new Error("price must be a positive number"), {
-        statusCode: 400
-      });
-    }
-    if (!Number.isInteger(stock) || stock < 0) {
-      throw Object.assign(new Error("stock must be a non-negative integer"), {
-        statusCode: 400
-      });
-    }
-    if (!manufacturer || typeof manufacturer !== "string" || manufacturer.trim().length < 2) {
-      throw Object.assign(new Error("manufacturer is required (min 2 chars)"), {
-        statusCode: 400
-      });
-    }
-    if (!categoryId || typeof categoryId !== "string") {
-      throw Object.assign(new Error("categoryId is required"), {
-        statusCode: 400
-      });
-    }
-    const finalSlug = typeof slug === "string" && slug.trim().length > 0 ? generateSlug(slug) : generateSlug(name);
-    const payload = {
-      name: name.trim(),
-      slug: finalSlug,
-      price,
-      stock,
-      manufacturer: manufacturer.trim(),
-      categoryId,
-      sellerId
-    };
-    if (typeof description === "string" && description.trim().length > 0) {
-      payload.description = description.trim();
-    }
-    if (typeof imageUrl === "string" && imageUrl.trim().length > 0) {
-      payload.imageUrl = imageUrl.trim();
-    }
-    if (typeof isActive === "boolean") {
-      payload.isActive = isActive;
-    }
-    const result = await MedicineService.createMedicine(payload);
-    res.status(201).json({
-      success: true,
-      message: "Medicine created successfully",
-      data: result
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-var getAllMedicines2 = async (req, res, next) => {
-  try {
-    const { categoryId, search, minPrice, maxPrice, manufacturer } = req.query;
-    const filters = {};
-    if (typeof categoryId === "string") filters.categoryId = categoryId;
-    if (typeof search === "string") filters.search = search;
-    if (typeof manufacturer === "string") filters.manufacturer = manufacturer;
-    if (typeof minPrice === "string") filters.minPrice = Number(minPrice);
-    if (typeof maxPrice === "string") filters.maxPrice = Number(maxPrice);
-    const pagination = paginationSortingHelper_default(req.query);
-    const result = await MedicineService.getAllMedicines(filters, pagination);
-    res.status(200).json({
-      success: true,
-      message: "Medicines fetched successfully",
-      meta: {
-        page: pagination.page,
-        limit: pagination.limit
-      },
-      data: result
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-var getMedicineById2 = async (req, res, next) => {
-  try {
-    const id = String(req.params.id);
-    const result = await MedicineService.getMedicineById(id);
-    res.status(200).json({
-      success: true,
-      message: "Medicine fetched successfully",
-      data: result
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-var getSellerMedicines2 = async (req, res, next) => {
-  try {
-    const sellerId = req.user?.id;
-    if (!sellerId)
-      throw Object.assign(new Error("Unauthorized"), { statusCode: 401 });
-    const includeInactive = typeof req.query.includeInactive === "string" ? req.query.includeInactive === "true" : false;
-    const result = await MedicineService.getSellerMedicines(
-      sellerId,
-      includeInactive
-    );
-    res.status(200).json({
-      success: true,
-      message: "Seller medicines fetched successfully",
-      data: result
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-var updateMedicine = async (req, res, next) => {
-  try {
-    const id = String(req.params.id);
-    const actor = req.user;
-    if (!actor)
-      throw Object.assign(new Error("Unauthorized"), { statusCode: 401 });
-    const payload = req.body ?? {};
-    const result = await MedicineService.updateMedicineForSeller(
-      id,
-      payload,
-      actor.id
-    );
-    res.status(200).json({
-      success: true,
-      message: "Medicine updated successfully",
-      data: result
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-var deleteMedicine = async (req, res, next) => {
-  try {
-    const id = String(req.params.id);
-    const actor = req.user;
-    if (!actor)
-      throw Object.assign(new Error("Unauthorized"), { statusCode: 401 });
-    await MedicineService.deleteMedicineForSeller(id, actor.id);
-    res.status(200).json({
-      success: true,
-      message: "Medicine deleted successfully"
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-var adminUpdateMedicine = async (req, res, next) => {
-  try {
-    const id = String(req.params.id);
-    const payload = req.body ?? {};
-    const result = await MedicineService.updateMedicineAsAdmin(id, payload);
-    res.status(200).json({
-      success: true,
-      message: "Medicine updated successfully",
-      data: result
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-var adminDeleteMedicine = async (req, res, next) => {
-  try {
-    const id = String(req.params.id);
-    await MedicineService.deleteMedicineAsAdmin(id);
-    res.status(200).json({
-      success: true,
-      message: "Medicine deleted successfully"
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-var MedicineController = {
-  createMedicine: createMedicine2,
-  getAllMedicines: getAllMedicines2,
-  getMedicineById: getMedicineById2,
-  getSellerMedicines: getSellerMedicines2,
-  updateMedicine,
-  deleteMedicine,
-  adminUpdateMedicine,
-  adminDeleteMedicine
-};
-
-// src/modules/medicines/medicine.route.ts
-var medicineRouter = express3.Router();
-medicineRouter.get("/", MedicineController.getAllMedicines);
-medicineRouter.get("/:id", MedicineController.getMedicineById);
-var sellerMedicineRouter = express3.Router();
-sellerMedicineRouter.post(
-  "/",
-  auth_middleware_default({ roles: ["SELLER" /* SELLER */], requireVerifiedEmail: true }),
-  MedicineController.createMedicine
-);
-sellerMedicineRouter.get(
-  "/",
-  auth_middleware_default({ roles: ["SELLER" /* SELLER */], requireVerifiedEmail: true }),
-  MedicineController.getSellerMedicines
-);
-sellerMedicineRouter.put(
-  "/:id",
-  auth_middleware_default({ roles: ["SELLER" /* SELLER */], requireVerifiedEmail: true }),
-  MedicineController.updateMedicine
-);
-sellerMedicineRouter.delete(
-  "/:id",
-  auth_middleware_default({ roles: ["SELLER" /* SELLER */], requireVerifiedEmail: true }),
-  MedicineController.deleteMedicine
-);
-var adminMedicineRouter = express3.Router();
-adminMedicineRouter.put(
-  "/:id",
-  auth_middleware_default({ roles: ["ADMIN" /* ADMIN */] }),
-  MedicineController.adminUpdateMedicine
-);
-adminMedicineRouter.delete(
-  "/:id",
-  auth_middleware_default({ roles: ["ADMIN" /* ADMIN */] }),
-  MedicineController.adminDeleteMedicine
-);
-var MedicineRouter = medicineRouter;
-var SellerMedicineRouter = sellerMedicineRouter;
-var AdminMedicineRouter = adminMedicineRouter;
-
-// src/modules/orders/order.route.ts
-import express4 from "express";
-
-// src/modules/orders/order.service.ts
-import { Prisma as Prisma2 } from "@prisma/client";
-var ALLOWED_ORDER_SORT_FIELDS = /* @__PURE__ */ new Set([
-  "createdAt",
-  "totalAmount",
-  "status"
-]);
-var VALID_STATUSES = [
-  "PLACED",
-  "PROCESSING",
-  "SHIPPED",
-  "DELIVERED",
-  "CANCELLED"
-];
-var createOrder = async (payload) => {
-  if (!payload.customerId) {
-    throw Object.assign(new Error("customerId is required"), {
-      statusCode: 400
-    });
-  }
-  if (!payload.shippingAddress || typeof payload.shippingAddress !== "string") {
-    throw Object.assign(new Error("shippingAddress is required"), {
-      statusCode: 400
-    });
-  }
-  if (!Array.isArray(payload.items) || payload.items.length === 0) {
-    throw Object.assign(new Error("Order items are required"), {
-      statusCode: 400
-    });
-  }
-  const medicineIds = payload.items.map((i) => i.medicineId);
-  const medicines = await prisma.medicine.findMany({
-    where: {
-      id: { in: medicineIds },
-      isActive: true
-    },
-    select: {
-      id: true,
-      price: true,
-      stock: true,
-      sellerId: true
-    }
-  });
-  if (medicines.length !== medicineIds.length) {
-    throw Object.assign(
-      new Error("One or more medicines not found or inactive"),
-      {
-        statusCode: 404
-      }
-    );
-  }
-  const medicineMap = new Map(medicines.map((m) => [m.id, m]));
-  const orderItems = payload.items.map((it) => {
-    const med = medicineMap.get(it.medicineId);
-    if (!med) {
-      throw Object.assign(new Error("Medicine not found"), { statusCode: 404 });
-    }
-    return {
-      medicineId: it.medicineId,
-      sellerId: med.sellerId,
-      quantity: it.quantity,
-      price: med.price
-      // Decimal from DB
-    };
-  });
-  let total = new Prisma2.Decimal(0);
-  for (const it of orderItems) {
-    total = total.plus(new Prisma2.Decimal(it.price).mul(it.quantity));
-  }
-  const result = await prisma.$transaction(async (tx) => {
-    for (const it of orderItems) {
-      const updated = await tx.medicine.updateMany({
-        where: {
-          id: it.medicineId,
-          stock: { gte: it.quantity }
-        },
-        data: {
-          stock: { decrement: it.quantity }
-        }
-      });
-      if (updated.count !== 1) {
-        throw Object.assign(
-          new Error("Insufficient stock for one or more items"),
-          {
-            statusCode: 409
-          }
-        );
-      }
-    }
-    const created = await tx.order.create({
-      data: {
-        customerId: payload.customerId,
-        totalAmount: total,
-        shippingAddress: payload.shippingAddress,
-        items: {
-          createMany: {
-            data: orderItems.map((i) => ({
-              medicineId: i.medicineId,
-              sellerId: i.sellerId,
-              quantity: i.quantity,
-              price: i.price
-            }))
-          }
-        }
-      },
-      include: {
-        items: {
-          include: { medicine: true }
-        }
-      }
-    });
-    return created;
-  });
-  return result;
-};
-var getUserOrders = async (userId, pagination) => {
-  if (!userId) {
-    throw Object.assign(new Error("Unauthorized"), { statusCode: 401 });
-  }
-  const sortBy = ALLOWED_ORDER_SORT_FIELDS.has(pagination.sortBy) ? pagination.sortBy : "createdAt";
-  return prisma.order.findMany({
-    where: { customerId: userId },
-    skip: pagination.skip,
-    take: pagination.limit,
-    include: { items: { include: { medicine: true } } },
-    orderBy: { [sortBy]: pagination.sortOrder }
-  });
-};
-var getOrderByIdForCustomer = async (id, userId) => {
-  const result = await prisma.order.findUniqueOrThrow({
-    where: { id },
-    include: { items: { include: { medicine: true } } }
-  });
-  if (result.customerId !== userId) {
-    throw Object.assign(new Error("Forbidden: order does not belong to you"), {
-      statusCode: 403
-    });
-  }
-  return result;
-};
-var getAllOrders = async (status, pagination) => {
-  const where = {};
-  if (status) {
-    if (!VALID_STATUSES.includes(status)) {
-      throw Object.assign(
-        new Error(
-          `Invalid order status. Must be one of: ${VALID_STATUSES.join(", ")}`
-        ),
-        { statusCode: 400 }
-      );
-    }
-    where.status = status;
-  }
-  const sortBy = ALLOWED_ORDER_SORT_FIELDS.has(pagination.sortBy) ? pagination.sortBy : "createdAt";
-  return prisma.order.findMany({
-    where,
-    skip: pagination.skip,
-    take: pagination.limit,
-    include: {
-      customer: { select: { id: true, name: true, email: true } },
-      items: { include: { medicine: true } }
-    },
-    orderBy: { [sortBy]: pagination.sortOrder }
-  });
-};
-var getSellerOrders = async (sellerId, pagination) => {
-  if (!sellerId) {
-    throw Object.assign(new Error("Unauthorized"), { statusCode: 401 });
-  }
-  const ALLOWED_ORDER_ITEM_SORT_FIELDS = /* @__PURE__ */ new Set([
-    "createdAt",
-    "price",
-    "quantity"
-  ]);
-  const sortBy = ALLOWED_ORDER_ITEM_SORT_FIELDS.has(pagination.sortBy) ? pagination.sortBy : "createdAt";
-  return prisma.orderItem.findMany({
-    where: { sellerId },
-    skip: pagination.skip,
-    take: pagination.limit,
-    include: {
-      order: {
-        include: {
-          customer: {
-            select: { id: true, name: true, email: true, phone: true }
-          }
-        }
-      },
-      medicine: true
-    },
-    orderBy: { [sortBy]: pagination.sortOrder }
-  });
-};
-var updateOrderStatus = async (id, status, actor) => {
-  if (!VALID_STATUSES.includes(status)) {
-    throw Object.assign(
-      new Error(
-        `Invalid order status. Must be one of: ${VALID_STATUSES.join(", ")}`
-      ),
-      { statusCode: 400 }
-    );
-  }
-  const order = await prisma.order.findUniqueOrThrow({
-    where: { id },
-    include: { items: true }
-  });
-  if (actor.role === "SELLER" /* SELLER */) {
-    const allBelongToSeller = order.items.every(
-      (it) => it.sellerId === actor.sellerId
-    );
-    if (!allBelongToSeller) {
-      throw Object.assign(
-        new Error("Forbidden: this order contains items from other sellers"),
-        {
-          statusCode: 403
-        }
-      );
-    }
-  }
-  return prisma.order.update({
-    where: { id },
-    data: { status },
-    include: { items: { include: { medicine: true } } }
-  });
-};
-var cancelOrder = async (id, userId) => {
-  const order = await prisma.order.findUniqueOrThrow({ where: { id } });
-  if (order.customerId !== userId) {
-    throw Object.assign(
-      new Error("Forbidden: cannot cancel someone else's order"),
-      {
-        statusCode: 403
-      }
-    );
-  }
-  if (order.status !== "PLACED") {
-    throw Object.assign(new Error("Only placed orders can be cancelled"), {
-      statusCode: 409
-    });
-  }
-  return prisma.order.update({
-    where: { id },
-    data: { status: "CANCELLED" },
-    include: { items: { include: { medicine: true } } }
-  });
-};
-var OrderService = {
-  createOrder,
-  getUserOrders,
-  getOrderByIdForCustomer,
-  getAllOrders,
-  getSellerOrders,
-  updateOrderStatus,
-  cancelOrder
-};
-
-// src/modules/orders/order.validation.ts
-var isNonEmptyString = (v) => typeof v === "string" && v.trim().length > 0;
-var isPositiveInt = (v) => Number.isInteger(v) && v > 0;
-var validateCreateOrderDTO = (body) => {
-  if (!body || typeof body !== "object") {
-    throw Object.assign(new Error("Invalid request body"), { statusCode: 400 });
-  }
-  if (!isNonEmptyString(body.shippingAddress)) {
-    throw Object.assign(new Error("shippingAddress is required"), {
-      statusCode: 400
-    });
-  }
-  if (!Array.isArray(body.items) || body.items.length === 0) {
-    throw Object.assign(new Error("items must be a non-empty array"), {
-      statusCode: 400
-    });
-  }
-  const items = body.items.map((it, idx) => {
-    if (!it || typeof it !== "object") {
-      throw Object.assign(new Error(`items[${idx}] must be an object`), {
-        statusCode: 400
-      });
-    }
-    if (!isNonEmptyString(it.medicineId)) {
-      throw Object.assign(new Error(`items[${idx}].medicineId is required`), {
-        statusCode: 400
-      });
-    }
-    if (!isPositiveInt(it.quantity)) {
-      throw Object.assign(
-        new Error(`items[${idx}].quantity must be a positive integer`),
-        {
-          statusCode: 400
-        }
-      );
-    }
-    return { medicineId: it.medicineId.trim(), quantity: it.quantity };
-  });
-  return {
-    shippingAddress: body.shippingAddress.trim(),
-    items
-  };
-};
-var validateUpdateOrderStatusDTO = (body) => {
-  if (!body || typeof body !== "object") {
-    throw Object.assign(new Error("Invalid request body"), { statusCode: 400 });
-  }
-  if (!isNonEmptyString(body.status)) {
-    throw Object.assign(new Error("status is required"), { statusCode: 400 });
-  }
-  const validStatuses = [
-    "PLACED",
-    "PROCESSING",
-    "SHIPPED",
-    "DELIVERED",
-    "CANCELLED"
-  ];
-  if (!validStatuses.includes(body.status)) {
-    throw Object.assign(
-      new Error(`Invalid status. Must be one of: ${validStatuses.join(", ")}`),
-      { statusCode: 400 }
-    );
-  }
-  return { status: body.status };
-};
-
-// src/modules/orders/order.controller.ts
-var createOrder2 = async (req, res, next) => {
-  try {
-    const customerId = req.user?.id;
-    if (!customerId) {
-      throw Object.assign(new Error("Unauthorized"), { statusCode: 401 });
-    }
-    const dto = validateCreateOrderDTO(req.body);
-    const result = await OrderService.createOrder({
-      customerId,
-      shippingAddress: dto.shippingAddress,
-      items: dto.items
-    });
-    res.status(201).json({
-      success: true,
-      message: "Order created successfully",
-      data: result
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-var getUserOrders2 = async (req, res, next) => {
-  try {
-    const userId = req.user?.id;
-    if (!userId)
-      throw Object.assign(new Error("Unauthorized"), { statusCode: 401 });
-    const pagination = paginationSortingHelper_default(req.query);
-    const result = await OrderService.getUserOrders(userId, pagination);
-    res.status(200).json({
-      success: true,
-      message: "Orders fetched successfully",
-      meta: { page: pagination.page, limit: pagination.limit },
-      data: result
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-var getOrderById = async (req, res, next) => {
-  try {
-    const id = String(req.params.id);
-    const userId = req.user?.id;
-    if (!userId) {
-      throw Object.assign(new Error("Unauthorized"), { statusCode: 401 });
-    }
-    const result = await OrderService.getOrderByIdForCustomer(id, userId);
-    res.status(200).json({
-      success: true,
-      message: "Order fetched successfully",
-      data: result
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-var cancelOrder2 = async (req, res, next) => {
-  try {
-    const id = String(req.params.id);
-    const userId = req.user?.id;
-    if (!userId) {
-      throw Object.assign(new Error("Unauthorized"), { statusCode: 401 });
-    }
-    const result = await OrderService.cancelOrder(id, userId);
-    res.status(200).json({
-      success: true,
-      message: "Order cancelled successfully",
-      data: result
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-var getSellerOrders2 = async (req, res, next) => {
-  try {
-    const sellerId = req.user?.id;
-    if (!sellerId)
-      throw Object.assign(new Error("Unauthorized"), { statusCode: 401 });
-    const pagination = paginationSortingHelper_default(req.query);
-    const result = await OrderService.getSellerOrders(sellerId, pagination);
-    res.status(200).json({
-      success: true,
-      message: "Seller orders fetched successfully",
-      meta: { page: pagination.page, limit: pagination.limit },
-      data: result
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-var updateOrderStatus2 = async (req, res, next) => {
-  try {
-    const id = String(req.params.id);
-    const actor = req.user;
-    if (!actor) {
-      throw Object.assign(new Error("Unauthorized"), { statusCode: 401 });
-    }
-    if (actor.role !== "SELLER" /* SELLER */ && actor.role !== "ADMIN" /* ADMIN */) {
-      throw Object.assign(new Error("Forbidden. Insufficient permissions."), {
-        statusCode: 403
-      });
-    }
-    const dto = validateUpdateOrderStatusDTO(req.body);
-    const result = actor.role === "SELLER" /* SELLER */ ? await OrderService.updateOrderStatus(id, dto.status, {
-      role: "SELLER" /* SELLER */,
-      sellerId: actor.id
-    }) : await OrderService.updateOrderStatus(id, dto.status, {
-      role: "ADMIN" /* ADMIN */
-    });
-    res.status(200).json({
-      success: true,
-      message: "Order status updated successfully",
-      data: result
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-var getAllOrders2 = async (req, res, next) => {
-  try {
-    const status = typeof req.query.status === "string" ? req.query.status : void 0;
-    const pagination = paginationSortingHelper_default(req.query);
-    const result = await OrderService.getAllOrders(status, pagination);
-    res.status(200).json({
-      success: true,
-      message: "Orders fetched successfully",
-      meta: { page: pagination.page, limit: pagination.limit },
-      data: result
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-var OrderController = {
-  createOrder: createOrder2,
-  getUserOrders: getUserOrders2,
-  getOrderById,
-  cancelOrder: cancelOrder2,
-  getSellerOrders: getSellerOrders2,
-  updateOrderStatus: updateOrderStatus2,
-  getAllOrders: getAllOrders2
-};
-
-// src/modules/orders/order.route.ts
-var orderRouter = express4.Router();
-orderRouter.post(
-  "/",
-  auth_middleware_default({ roles: ["CUSTOMER" /* CUSTOMER */], requireVerifiedEmail: true }),
-  OrderController.createOrder
-);
-orderRouter.get(
-  "/",
-  auth_middleware_default({ roles: ["CUSTOMER" /* CUSTOMER */], requireVerifiedEmail: true }),
-  OrderController.getUserOrders
-);
-orderRouter.get(
-  "/:id",
-  auth_middleware_default({ roles: ["CUSTOMER" /* CUSTOMER */], requireVerifiedEmail: true }),
-  OrderController.getOrderById
-);
-orderRouter.patch(
-  "/:id/cancel",
-  auth_middleware_default({ roles: ["CUSTOMER" /* CUSTOMER */], requireVerifiedEmail: true }),
-  OrderController.cancelOrder
-);
-var sellerOrderRouter = express4.Router();
-sellerOrderRouter.get(
-  "/",
-  auth_middleware_default({ roles: ["SELLER" /* SELLER */], requireVerifiedEmail: true }),
-  OrderController.getSellerOrders
-);
-sellerOrderRouter.patch(
-  "/:id",
-  auth_middleware_default({ roles: ["SELLER" /* SELLER */], requireVerifiedEmail: true }),
-  OrderController.updateOrderStatus
-);
-var adminOrderRouter = express4.Router();
-adminOrderRouter.get(
-  "/",
-  auth_middleware_default({ roles: ["ADMIN" /* ADMIN */] }),
-  OrderController.getAllOrders
-);
-adminOrderRouter.patch(
-  "/:id",
-  auth_middleware_default({ roles: ["ADMIN" /* ADMIN */] }),
-  OrderController.updateOrderStatus
-);
-var OrderRouter = orderRouter;
-var SellerOrderRouter = sellerOrderRouter;
-var AdminOrderRouter = adminOrderRouter;
-
-// src/modules/reviews/review.route.ts
-import express5 from "express";
-
-// src/modules/reviews/review.service.ts
-var ALLOWED_REVIEW_SORT_FIELDS = /* @__PURE__ */ new Set(["createdAt", "rating"]);
-var createReview = async (payload) => {
-  const hasDeliveredOrder = await prisma.orderItem.findFirst({
-    where: {
-      medicineId: payload.medicineId,
-      order: {
-        customerId: payload.customerId,
-        status: "DELIVERED"
-      }
-    },
-    select: { id: true }
-  });
-  if (!hasDeliveredOrder) {
-    throw Object.assign(
-      new Error("You can review only after this medicine is delivered to you."),
-      { statusCode: 403 }
-    );
-  }
-  const result = await prisma.review.create({
-    data: payload,
-    include: {
-      customer: {
-        select: {
-          id: true,
-          name: true,
-          image: true
-        }
-      },
-      medicine: {
-        select: {
-          id: true,
-          name: true
-        }
-      }
-    }
-  });
-  return result;
-};
-var getMedicineReviews = async (medicineId, pagination) => {
-  const sortBy = ALLOWED_REVIEW_SORT_FIELDS.has(pagination.sortBy) ? pagination.sortBy : "createdAt";
-  return prisma.review.findMany({
-    where: { medicineId },
-    skip: pagination.skip,
-    take: pagination.limit,
-    include: {
-      customer: { select: { id: true, name: true, image: true } }
-    },
-    orderBy: { [sortBy]: pagination.sortOrder }
-  });
-};
-var getUserReviews = async (customerId, pagination) => {
-  const sortBy = ALLOWED_REVIEW_SORT_FIELDS.has(pagination.sortBy) ? pagination.sortBy : "createdAt";
-  return prisma.review.findMany({
-    where: { customerId },
-    skip: pagination.skip,
-    take: pagination.limit,
-    include: {
-      medicine: { select: { id: true, name: true, imageUrl: true } }
-    },
-    orderBy: { [sortBy]: pagination.sortOrder }
-  });
-};
-var updateReview = async (id, customerId, payload) => {
-  const review = await prisma.review.findUniqueOrThrow({ where: { id } });
-  if (review.customerId !== customerId) {
-    throw Object.assign(
-      new Error("Forbidden: unauthorized to update this review"),
-      {
-        statusCode: 403
-      }
-    );
-  }
-  const cleanData = {};
-  Object.entries(payload).forEach(([key, value]) => {
-    if (value !== void 0) cleanData[key] = value;
-  });
-  if (Object.keys(cleanData).length === 0) {
-    throw Object.assign(new Error("No fields to update"), { statusCode: 400 });
-  }
-  return prisma.review.update({
-    where: { id },
-    data: cleanData,
-    include: {
-      customer: { select: { id: true, name: true, image: true } },
-      medicine: { select: { id: true, name: true } }
-    }
-  });
-};
-var deleteReview = async (id, customerId) => {
-  const review = await prisma.review.findUniqueOrThrow({ where: { id } });
-  if (review.customerId !== customerId) {
-    throw Object.assign(
-      new Error("Forbidden: unauthorized to delete this review"),
-      {
-        statusCode: 403
-      }
-    );
-  }
-  await prisma.review.delete({ where: { id } });
-};
-var ReviewService = {
-  createReview,
-  getMedicineReviews,
-  getUserReviews,
-  updateReview,
-  deleteReview
-};
-
-// src/modules/reviews/review.controller.ts
-var createReview2 = async (req, res, next) => {
-  try {
-    const customerId = req.user?.id;
-    if (!customerId) {
-      throw Object.assign(new Error("Unauthorized"), { statusCode: 401 });
-    }
-    const { medicineId, rating, comment } = req.body;
-    if (!medicineId || rating === void 0 || !comment) {
-      throw Object.assign(
-        new Error("Missing required fields: medicineId, rating, comment"),
-        { statusCode: 400 }
-      );
-    }
-    if (typeof rating !== "number" || rating < 1 || rating > 5) {
-      throw Object.assign(
-        new Error("Rating must be a number between 1 and 5"),
-        {
-          statusCode: 400
-        }
-      );
-    }
-    if (typeof comment !== "string" || comment.trim().length < 3) {
-      throw Object.assign(new Error("Comment must be at least 3 characters"), {
-        statusCode: 400
-      });
-    }
-    const result = await ReviewService.createReview({
-      customerId,
-      medicineId,
-      rating,
-      comment: comment.trim()
-    });
-    res.status(201).json({
-      success: true,
-      message: "Review created successfully",
-      data: result
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-var getMedicineReviews2 = async (req, res, next) => {
-  try {
-    const medicineId = String(req.params.medicineId);
-    const pagination = paginationSortingHelper_default(req.query);
-    const result = await ReviewService.getMedicineReviews(
-      medicineId,
-      pagination
-    );
-    res.status(200).json({
-      success: true,
-      message: "Reviews fetched successfully",
-      meta: { page: pagination.page, limit: pagination.limit },
-      data: result
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-var getUserReviews2 = async (req, res, next) => {
-  try {
-    const customerId = req.user?.id;
-    if (!customerId) {
-      throw Object.assign(new Error("Unauthorized"), { statusCode: 401 });
-    }
-    const pagination = paginationSortingHelper_default(req.query);
-    const result = await ReviewService.getUserReviews(customerId, pagination);
-    res.status(200).json({
-      success: true,
-      message: "Your reviews fetched successfully",
-      meta: { page: pagination.page, limit: pagination.limit },
-      data: result
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-var updateReview2 = async (req, res, next) => {
-  try {
-    const id = String(req.params.id);
-    const customerId = req.user?.id;
-    if (!customerId) {
-      throw Object.assign(new Error("Unauthorized"), { statusCode: 401 });
-    }
-    const { rating, comment } = req.body;
-    if (rating !== void 0 && (typeof rating !== "number" || rating < 1 || rating > 5)) {
-      throw Object.assign(
-        new Error("Rating must be a number between 1 and 5"),
-        {
-          statusCode: 400
-        }
-      );
-    }
-    if (comment !== void 0 && (typeof comment !== "string" || comment.trim().length < 3)) {
-      throw Object.assign(new Error("Comment must be at least 3 characters"), {
-        statusCode: 400
-      });
-    }
-    const result = await ReviewService.updateReview(id, customerId, {
-      rating,
-      comment: typeof comment === "string" ? comment.trim() : void 0
-    });
-    res.status(200).json({
-      success: true,
-      message: "Review updated successfully",
-      data: result
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-var deleteReview2 = async (req, res, next) => {
-  try {
-    const id = String(req.params.id);
-    const customerId = req.user?.id;
-    if (!customerId) {
-      throw Object.assign(new Error("Unauthorized"), { statusCode: 401 });
-    }
-    await ReviewService.deleteReview(id, customerId);
-    res.status(200).json({
-      success: true,
-      message: "Review deleted successfully"
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-var ReviewController = {
-  createReview: createReview2,
-  getMedicineReviews: getMedicineReviews2,
-  getUserReviews: getUserReviews2,
-  updateReview: updateReview2,
-  deleteReview: deleteReview2
-};
-
-// src/modules/reviews/review.route.ts
-var router2 = express5.Router();
-router2.get("/medicine/:medicineId", ReviewController.getMedicineReviews);
-router2.post(
-  "/",
-  auth_middleware_default({ roles: ["CUSTOMER" /* CUSTOMER */], requireVerifiedEmail: true }),
-  ReviewController.createReview
-);
-router2.get(
-  "/",
-  auth_middleware_default({ roles: ["CUSTOMER" /* CUSTOMER */], requireVerifiedEmail: true }),
-  ReviewController.getUserReviews
-);
-router2.put(
-  "/:id",
-  auth_middleware_default({ roles: ["CUSTOMER" /* CUSTOMER */], requireVerifiedEmail: true }),
-  ReviewController.updateReview
-);
-router2.delete(
-  "/:id",
-  auth_middleware_default({ roles: ["CUSTOMER" /* CUSTOMER */], requireVerifiedEmail: true }),
-  ReviewController.deleteReview
-);
-var ReviewRouter = router2;
-
-// src/middleware/NotFound.ts
-function notFound(req, res) {
-  res.status(404).json({
-    success: false,
-    message: "Route not found",
-    path: req.originalUrl,
-    timestamp: (/* @__PURE__ */ new Date()).toISOString()
-  });
+  @@index([email])
+  @@index([role])
+  @@index([isActive])
+  @@index([isBanned])
+  @@index([isDeleted])
+  @@map("users")
 }
 
-// src/middleware/globalErrorHandler.ts
-import { Prisma as Prisma3 } from "@prisma/client";
-function globalErrorHandler(err, req, res, next) {
-  let statusCode = typeof err?.statusCode === "number" ? err.statusCode : 500;
-  let message = typeof err?.message === "string" && err.message.trim().length > 0 ? err.message : "Internal Server Error";
-  if (err instanceof Prisma3.PrismaClientValidationError) {
-    statusCode = 400;
-    message = "Invalid data provided.";
-  } else if (err instanceof Prisma3.PrismaClientKnownRequestError) {
-    switch (err.code) {
-      case "P2002":
-        statusCode = 409;
-        message = "Duplicate value violates unique constraint.";
-        break;
-      case "P2025":
-        statusCode = 404;
-        message = "Requested resource not found.";
-        break;
-      case "P2003":
-        statusCode = 409;
-        message = "Foreign key constraint violation.";
-        break;
-      case "P2007":
-        statusCode = 400;
-        message = "Invalid input data.";
-        break;
-      default:
-        statusCode = 400;
-        message = "Database request error.";
-    }
-  } else if (err instanceof Prisma3.PrismaClientUnknownRequestError) {
-    statusCode = 500;
-    message = "Unexpected database error.";
-  } else if (err?.name === "UnauthorizedError") {
-    statusCode = 401;
-    message = "Unauthorized access.";
-  } else if (err?.name === "ForbiddenError") {
-    statusCode = 403;
-    message = "Forbidden access.";
-  }
-  res.status(statusCode).json({
-    success: false,
-    message,
-    ...process.env.NODE_ENV === "development" && {
-      stack: err?.stack,
-      prismaCode: err?.code
-    }
-  });
+model Session {
+  id        String   @id @default(uuid())
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("session")
 }
-var globalErrorHandler_default = globalErrorHandler;
 
-// src/app.ts
-var app = express6();
-app.use(express6.json());
-app.use(
-  cors({
-    origin: process.env.APP_URL,
-    credentials: true
-  })
-);
-app.all("/api/auth/*splat", toNodeHandler(auth));
-app.use("/api/v1/users", UserRouter);
-app.use("/api/v1/categories", CategoryRouter);
-app.use("/api/v1/reviews", ReviewRouter);
-app.use("/api/v1/medicines", MedicineRouter);
-app.use("/api/v1/seller/medicines", SellerMedicineRouter);
-app.use("/api/v1/admin/medicines", AdminMedicineRouter);
-app.use("/api/v1/orders", OrderRouter);
-app.use("/api/v1/seller/orders", SellerOrderRouter);
-app.use("/api/v1/admin/orders", AdminOrderRouter);
-app.use("/api/v1/admin/users", AdminUserRouter);
-app.get("/", (req, res) => {
-  res.send("Hello World To Medi Store");
-});
-app.use(notFound);
-app.use(globalErrorHandler_default);
-var app_default = app;
+model Account {
+  id                   String    @id @default(uuid())
+  userId               String
+  accountId            String
+  providerId           String
+  password             String?
+  accessToken          String?
+  refreshToken         String?
+  idToken              String?
+  scope                String?
+  accessTokenExpiresAt DateTime?
+  expiresAt            DateTime?
 
-// src/index.ts
-var index_default = app_default;
-export {
-  index_default as default
-};
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([providerId, accountId])
+  @@index([userId])
+  @@index([providerId])
+  @@map("accounts")
+}
+
+model Verification {
+  id         String   @id @default(uuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@index([expiresAt])
+  @@map("verification")
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  imageUrl    String?
+  icon        String?
+  isDeleted   Boolean   @default(false)
+  deletedAt   DateTime?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  medicines Medicine[]
+
+  @@index([isActive])
+  @@index([isDeleted])
+  @@index([createdAt])
+  @@map("categories")
+}
+
+enum Role {
+  CUSTOMER
+  SELLER
+  ADMIN
+}
+
+enum OrderStatus {
+  PLACED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+model Medicine {
+  id           String  @id @default(uuid())
+  name         String
+  slug         String
+  description  String?
+  price        Decimal @db.Decimal(10, 2)
+  stock        Int
+  manufacturer String
+
+  imageUrl String?
+
+  isActive  Boolean   @default(true)
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  sellerId String
+  seller   User   @relation("SellerMedicines", fields: [sellerId], references: [id], onDelete: Restrict)
+
+  reviews        Review[]
+  orderItems     OrderItem[]
+  medicineImages MedicineImage[]
+
+  @@unique([sellerId, slug])
+  @@index([sellerId])
+  @@index([categoryId])
+  @@index([slug])
+  @@index([isActive])
+  @@index([isDeleted])
+  @@index([createdAt])
+  @@index([sellerId, isDeleted])
+  @@index([categoryId, isDeleted, isActive])
+  @@map("medicines")
+}
+
+model MedicineImage {
+  id         String   @id @default(uuid())
+  medicineId String
+  url        String
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  medicine Medicine @relation(fields: [medicineId], references: [id], onDelete: Cascade)
+
+  @@index([medicineId, sortOrder])
+  @@map("medicine_images")
+}
+
+model Order {
+  id              String        @id @default(uuid())
+  customerId      String
+  totalAmount     Decimal       @db.Decimal(10, 2)
+  status          OrderStatus   @default(PLACED)
+  paymentStatus   PaymentStatus @default(PENDING)
+  transactionId   String?       @unique
+  shippingAddress String        @db.Text
+
+  customer User        @relation("CustomerOrders", fields: [customerId], references: [id])
+  items    OrderItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([customerId])
+  @@index([status])
+  @@index([paymentStatus])
+  @@index([createdAt])
+  @@map("orders")
+}
+
+model OrderItem {
+  id         String  @id @default(uuid())
+  orderId    String
+  medicineId String
+  sellerId   String
+  quantity   Int
+  price      Decimal @db.Decimal(10, 2)
+
+  medicineName String?
+  medicineSlug String?
+  manufacturer String?
+  imageUrl     String?
+
+  order    Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  medicine Medicine @relation(fields: [medicineId], references: [id], onDelete: Restrict)
+  seller   User     @relation("SellerOrderItems", fields: [sellerId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@unique([orderId, medicineId])
+  @@index([orderId])
+  @@index([sellerId])
+  @@index([medicineId])
+  @@map("order_items")
+}
+
+model Review {
+  id          String    @id @default(uuid())
+  rating      Int       @default(5) @db.SmallInt
+  comment     String    @db.Text
+  isDeleted   Boolean   @default(false)
+  deletedAt   DateTime?
+  isPublished Boolean   @default(true)
+
+  customerId String
+  medicineId String
+
+  customer User     @relation(fields: [customerId], references: [id])
+  medicine Medicine @relation(fields: [medicineId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([customerId, medicineId])
+  @@index([medicineId])
+  @@index([isDeleted])
+  @@index([isPublished])
+  @@map("reviews")
+}
+
+generator client {
+  provider = "prisma-client"
+  output   = "../../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+`,runtimeDataModel:{models:{},enums:{},types:{}}};He.runtimeDataModel=JSON.parse('{"models":{"User":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"name","kind":"scalar","type":"String"},{"name":"email","kind":"scalar","type":"String"},{"name":"emailVerified","kind":"scalar","type":"Boolean"},{"name":"image","kind":"scalar","type":"String"},{"name":"phone","kind":"scalar","type":"String"},{"name":"role","kind":"enum","type":"Role"},{"name":"isBanned","kind":"scalar","type":"Boolean"},{"name":"isActive","kind":"scalar","type":"Boolean"},{"name":"isDeleted","kind":"scalar","type":"Boolean"},{"name":"deletedAt","kind":"scalar","type":"DateTime"},{"name":"medicines","kind":"object","type":"Medicine","relationName":"SellerMedicines"},{"name":"orders","kind":"object","type":"Order","relationName":"CustomerOrders"},{"name":"sellerOrderItems","kind":"object","type":"OrderItem","relationName":"SellerOrderItems"},{"name":"reviews","kind":"object","type":"Review","relationName":"ReviewToUser"},{"name":"sessions","kind":"object","type":"Session","relationName":"SessionToUser"},{"name":"accounts","kind":"object","type":"Account","relationName":"AccountToUser"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":"users"},"Session":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"expiresAt","kind":"scalar","type":"DateTime"},{"name":"token","kind":"scalar","type":"String"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"},{"name":"ipAddress","kind":"scalar","type":"String"},{"name":"userAgent","kind":"scalar","type":"String"},{"name":"userId","kind":"scalar","type":"String"},{"name":"user","kind":"object","type":"User","relationName":"SessionToUser"}],"dbName":"session"},"Account":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"userId","kind":"scalar","type":"String"},{"name":"accountId","kind":"scalar","type":"String"},{"name":"providerId","kind":"scalar","type":"String"},{"name":"password","kind":"scalar","type":"String"},{"name":"accessToken","kind":"scalar","type":"String"},{"name":"refreshToken","kind":"scalar","type":"String"},{"name":"idToken","kind":"scalar","type":"String"},{"name":"scope","kind":"scalar","type":"String"},{"name":"accessTokenExpiresAt","kind":"scalar","type":"DateTime"},{"name":"expiresAt","kind":"scalar","type":"DateTime"},{"name":"user","kind":"object","type":"User","relationName":"AccountToUser"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":"accounts"},"Verification":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"identifier","kind":"scalar","type":"String"},{"name":"value","kind":"scalar","type":"String"},{"name":"expiresAt","kind":"scalar","type":"DateTime"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":"verification"},"Category":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"name","kind":"scalar","type":"String"},{"name":"slug","kind":"scalar","type":"String"},{"name":"description","kind":"scalar","type":"String"},{"name":"imageUrl","kind":"scalar","type":"String"},{"name":"icon","kind":"scalar","type":"String"},{"name":"isDeleted","kind":"scalar","type":"Boolean"},{"name":"deletedAt","kind":"scalar","type":"DateTime"},{"name":"isActive","kind":"scalar","type":"Boolean"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"},{"name":"medicines","kind":"object","type":"Medicine","relationName":"CategoryToMedicine"}],"dbName":"categories"},"Medicine":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"name","kind":"scalar","type":"String"},{"name":"slug","kind":"scalar","type":"String"},{"name":"description","kind":"scalar","type":"String"},{"name":"price","kind":"scalar","type":"Decimal"},{"name":"stock","kind":"scalar","type":"Int"},{"name":"manufacturer","kind":"scalar","type":"String"},{"name":"imageUrl","kind":"scalar","type":"String"},{"name":"isActive","kind":"scalar","type":"Boolean"},{"name":"isDeleted","kind":"scalar","type":"Boolean"},{"name":"deletedAt","kind":"scalar","type":"DateTime"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"},{"name":"categoryId","kind":"scalar","type":"String"},{"name":"category","kind":"object","type":"Category","relationName":"CategoryToMedicine"},{"name":"sellerId","kind":"scalar","type":"String"},{"name":"seller","kind":"object","type":"User","relationName":"SellerMedicines"},{"name":"reviews","kind":"object","type":"Review","relationName":"MedicineToReview"},{"name":"orderItems","kind":"object","type":"OrderItem","relationName":"MedicineToOrderItem"},{"name":"medicineImages","kind":"object","type":"MedicineImage","relationName":"MedicineToMedicineImage"}],"dbName":"medicines"},"MedicineImage":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"medicineId","kind":"scalar","type":"String"},{"name":"url","kind":"scalar","type":"String"},{"name":"sortOrder","kind":"scalar","type":"Int"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"},{"name":"medicine","kind":"object","type":"Medicine","relationName":"MedicineToMedicineImage"}],"dbName":"medicine_images"},"Order":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"customerId","kind":"scalar","type":"String"},{"name":"totalAmount","kind":"scalar","type":"Decimal"},{"name":"status","kind":"enum","type":"OrderStatus"},{"name":"paymentStatus","kind":"enum","type":"PaymentStatus"},{"name":"transactionId","kind":"scalar","type":"String"},{"name":"shippingAddress","kind":"scalar","type":"String"},{"name":"customer","kind":"object","type":"User","relationName":"CustomerOrders"},{"name":"items","kind":"object","type":"OrderItem","relationName":"OrderToOrderItem"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":"orders"},"OrderItem":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"orderId","kind":"scalar","type":"String"},{"name":"medicineId","kind":"scalar","type":"String"},{"name":"sellerId","kind":"scalar","type":"String"},{"name":"quantity","kind":"scalar","type":"Int"},{"name":"price","kind":"scalar","type":"Decimal"},{"name":"medicineName","kind":"scalar","type":"String"},{"name":"medicineSlug","kind":"scalar","type":"String"},{"name":"manufacturer","kind":"scalar","type":"String"},{"name":"imageUrl","kind":"scalar","type":"String"},{"name":"order","kind":"object","type":"Order","relationName":"OrderToOrderItem"},{"name":"medicine","kind":"object","type":"Medicine","relationName":"MedicineToOrderItem"},{"name":"seller","kind":"object","type":"User","relationName":"SellerOrderItems"},{"name":"createdAt","kind":"scalar","type":"DateTime"}],"dbName":"order_items"},"Review":{"fields":[{"name":"id","kind":"scalar","type":"String"},{"name":"rating","kind":"scalar","type":"Int"},{"name":"comment","kind":"scalar","type":"String"},{"name":"isDeleted","kind":"scalar","type":"Boolean"},{"name":"deletedAt","kind":"scalar","type":"DateTime"},{"name":"isPublished","kind":"scalar","type":"Boolean"},{"name":"customerId","kind":"scalar","type":"String"},{"name":"medicineId","kind":"scalar","type":"String"},{"name":"customer","kind":"object","type":"User","relationName":"ReviewToUser"},{"name":"medicine","kind":"object","type":"Medicine","relationName":"MedicineToReview"},{"name":"createdAt","kind":"scalar","type":"DateTime"},{"name":"updatedAt","kind":"scalar","type":"DateTime"}],"dbName":"reviews"}},"enums":{},"types":{}}');async function wr(e){let{Buffer:t}=await import("buffer"),r=t.from(e,"base64");return new WebAssembly.Module(r)}He.compilerWasm={getRuntime:async()=>await import("@prisma/client/runtime/query_compiler_fast_bg.postgresql.mjs"),getQueryCompilerWasmModule:async()=>{let{wasm:e}=await import("@prisma/client/runtime/query_compiler_fast_bg.postgresql.wasm-base64.mjs");return await wr(e)},importName:"./query_compiler_fast_bg.js"};function pt(){return mt.getPrismaClient(He)}var M={};Rr(M,{AccountScalarFieldEnum:()=>Hr,AnyNull:()=>qr,CategoryScalarFieldEnum:()=>Wr,DbNull:()=>$r,Decimal:()=>Fr,JsonNull:()=>Vr,MedicineImageScalarFieldEnum:()=>Jr,MedicineScalarFieldEnum:()=>zr,ModelName:()=>jr,NullTypes:()=>Br,NullsOrder:()=>ii,OrderItemScalarFieldEnum:()=>Xr,OrderScalarFieldEnum:()=>Zr,PrismaClientInitializationError:()=>Mr,PrismaClientKnownRequestError:()=>Ir,PrismaClientRustPanicError:()=>hr,PrismaClientUnknownRequestError:()=>Ur,PrismaClientValidationError:()=>Dr,QueryMode:()=>ri,ReviewScalarFieldEnum:()=>ei,SessionScalarFieldEnum:()=>Gr,SortOrder:()=>ti,Sql:()=>_r,TransactionIsolationLevel:()=>Kr,UserScalarFieldEnum:()=>Qr,VerificationScalarFieldEnum:()=>Yr,defineExtension:()=>si,empty:()=>vr,getExtensionContext:()=>kr,join:()=>br,prismaVersion:()=>Lr,raw:()=>Nr,sql:()=>Cr});import*as O from"@prisma/client/runtime/client";var Ir=O.PrismaClientKnownRequestError,Ur=O.PrismaClientUnknownRequestError,hr=O.PrismaClientRustPanicError,Mr=O.PrismaClientInitializationError,Dr=O.PrismaClientValidationError,Cr=O.sqltag,vr=O.empty,br=O.join,Nr=O.raw,_r=O.Sql,Fr=O.Decimal,kr=O.Extensions.getExtensionContext,Lr={client:"7.3.0",engine:"9d6ad21cbbceab97458517b147a6a09ff43aa735"},Br={DbNull:O.NullTypes.DbNull,JsonNull:O.NullTypes.JsonNull,AnyNull:O.NullTypes.AnyNull},$r=O.DbNull,Vr=O.JsonNull,qr=O.AnyNull,jr={User:"User",Session:"Session",Account:"Account",Verification:"Verification",Category:"Category",Medicine:"Medicine",MedicineImage:"MedicineImage",Order:"Order",OrderItem:"OrderItem",Review:"Review"},Kr=O.makeStrictEnum({ReadUncommitted:"ReadUncommitted",ReadCommitted:"ReadCommitted",RepeatableRead:"RepeatableRead",Serializable:"Serializable"}),Qr={id:"id",name:"name",email:"email",emailVerified:"emailVerified",image:"image",phone:"phone",role:"role",isBanned:"isBanned",isActive:"isActive",isDeleted:"isDeleted",deletedAt:"deletedAt",createdAt:"createdAt",updatedAt:"updatedAt"},Gr={id:"id",expiresAt:"expiresAt",token:"token",createdAt:"createdAt",updatedAt:"updatedAt",ipAddress:"ipAddress",userAgent:"userAgent",userId:"userId"},Hr={id:"id",userId:"userId",accountId:"accountId",providerId:"providerId",password:"password",accessToken:"accessToken",refreshToken:"refreshToken",idToken:"idToken",scope:"scope",accessTokenExpiresAt:"accessTokenExpiresAt",expiresAt:"expiresAt",createdAt:"createdAt",updatedAt:"updatedAt"},Yr={id:"id",identifier:"identifier",value:"value",expiresAt:"expiresAt",createdAt:"createdAt",updatedAt:"updatedAt"},Wr={id:"id",name:"name",slug:"slug",description:"description",imageUrl:"imageUrl",icon:"icon",isDeleted:"isDeleted",deletedAt:"deletedAt",isActive:"isActive",createdAt:"createdAt",updatedAt:"updatedAt"},zr={id:"id",name:"name",slug:"slug",description:"description",price:"price",stock:"stock",manufacturer:"manufacturer",imageUrl:"imageUrl",isActive:"isActive",isDeleted:"isDeleted",deletedAt:"deletedAt",createdAt:"createdAt",updatedAt:"updatedAt",categoryId:"categoryId",sellerId:"sellerId"},Jr={id:"id",medicineId:"medicineId",url:"url",sortOrder:"sortOrder",createdAt:"createdAt",updatedAt:"updatedAt"},Zr={id:"id",customerId:"customerId",totalAmount:"totalAmount",status:"status",paymentStatus:"paymentStatus",transactionId:"transactionId",shippingAddress:"shippingAddress",createdAt:"createdAt",updatedAt:"updatedAt"},Xr={id:"id",orderId:"orderId",medicineId:"medicineId",sellerId:"sellerId",quantity:"quantity",price:"price",medicineName:"medicineName",medicineSlug:"medicineSlug",manufacturer:"manufacturer",imageUrl:"imageUrl",createdAt:"createdAt"},ei={id:"id",rating:"rating",comment:"comment",isDeleted:"isDeleted",deletedAt:"deletedAt",isPublished:"isPublished",customerId:"customerId",medicineId:"medicineId",createdAt:"createdAt",updatedAt:"updatedAt"},ti={asc:"asc",desc:"desc"},ri={default:"default",insensitive:"insensitive"},ii={first:"first",last:"last"},si=O.Extensions.defineExtension;var v={PLACED:"PLACED",PROCESSING:"PROCESSING",SHIPPED:"SHIPPED",DELIVERED:"DELIVERED",CANCELLED:"CANCELLED"},le={PENDING:"PENDING",PAID:"PAID",FAILED:"FAILED",REFUNDED:"REFUNDED"};globalThis.__dirname=gt.dirname(ai(import.meta.url));var yt=pt();var di=E.DATABASE_URL,li=new oi({connectionString:di}),o=new yt({adapter:li});var gi=pi.createTransport({host:E.EMAIL_SENDER.SMTP_HOST,port:Number(E.EMAIL_SENDER.SMTP_PORT),secure:E.EMAIL_SENDER.SMTP_PORT==="465",auth:{user:E.EMAIL_SENDER.SMTP_USER,pass:E.EMAIL_SENDER.SMTP_PASS}}),W=ui({database:ci(o,{provider:"postgresql"}),baseURL:E.BETTER_AUTH_URL,trustedOrigins:[E.FRONTEND_URL,E.BETTER_AUTH_URL].filter(Boolean),emailAndPassword:{enabled:!0,autoSignIn:!1,requireEmailVerification:!0},emailVerification:{sendOnSignUp:!0,autoSignInAfterVerification:!0,sendVerificationEmail:async({user:e,token:t})=>{let r=`${E.FRONTEND_URL}/verify-email?token=${t}`,i=await gi.sendMail({from:`"Medi-Store" <${E.EMAIL_SENDER.SMTP_FROM}>`,to:e.email,subject:"Please verify your email!",html:ct(r,e.email)});console.log("Email sent:",i.messageId)}},socialProviders:{google:{prompt:"select_account consent",accessType:"offline",clientId:E.GOOGLE_CLIENT_ID,clientSecret:E.GOOGLE_CLIENT_SECRET}},user:{additionalFields:{role:{type:"string",defaultValue:l.CUSTOMER},isActive:{type:"boolean",required:!0,defaultValue:!0},isDeleted:{type:"boolean",required:!0,defaultValue:!1},deletedAt:{type:"date",required:!1,defaultValue:null},isBanned:{type:"boolean",required:!0,defaultValue:!1},phone:{type:"string",required:!1,defaultValue:""}}},plugins:[mi()],advanced:{useSecureCookies:E.NODE_ENV==="production",cookies:{session_token:{name:"mediStore_session",attributes:{httpOnly:!0,secure:E.NODE_ENV==="production",sameSite:"lax"}}}}});import ft from"http-status";var yi=(e,t)=>t.status(ft.NOT_FOUND).json({success:!1,statusCode:ft.NOT_FOUND,message:"API Not Found",errorSources:[{path:e.originalUrl,message:"Your requested route does not exist."}]}),At=yi;import V from"http-status";import Ri from"multer";import{ZodError as It}from"zod";import D from"http-status";var Pt=e=>{if(e==="P2002")return D.CONFLICT;if(["P2001","P2025","P2015","P2018"].includes(e))return D.NOT_FOUND;if(["P1000","P6002"].includes(e))return D.UNAUTHORIZED;if(["P1010","P6010"].includes(e))return D.FORBIDDEN;if(e==="P6003")return D.PAYMENT_REQUIRED;if(["P1008","P2004","P6004"].includes(e))return D.GATEWAY_TIMEOUT;if(e==="P5011")return D.TOO_MANY_REQUESTS;if(e==="P6009")return D.REQUEST_ENTITY_TOO_LARGE;return e.startsWith("P1")||["P2024","P2037","P6008"].includes(e)?D.SERVICE_UNAVAILABLE:e.startsWith("P2")?D.BAD_REQUEST:e.startsWith("P3")||e.startsWith("P4")?D.INTERNAL_SERVER_ERROR:D.INTERNAL_SERVER_ERROR},Et=e=>e.replace(/Invalid `.*?` invocation:?\s*/i,"").trim(),Ye=(e,t)=>Et(e).split(`
+`).map(i=>i.trim()).filter(Boolean)[0]||t,fi=e=>{if(!e)return"";let t=[];if(e.target){let r=Array.isArray(e.target)?e.target.join(", "):String(e.target);t.push(`Field(s): ${r}`)}return e.field_name&&t.push(`Field: ${String(e.field_name)}`),e.column_name&&t.push(`Column: ${String(e.column_name)}`),e.table&&t.push(`Table: ${String(e.table)}`),e.model_name&&t.push(`Model: ${String(e.model_name)}`),e.relation_name&&t.push(`Relation: ${String(e.relation_name)}`),e.constraint&&t.push(`Constraint: ${String(e.constraint)}`),e.database_error&&t.push(`Database Error: ${String(e.database_error)}`),t.length>0?t.join(" | "):""},Rt=e=>{let t=Pt(e.code),r=Ye(e.message,"An error occurred with the database operation."),i=fi(e.meta),n=[{path:e.code,message:i?`${r} | ${i}`:r}];return e.meta?.cause&&n.push({path:"cause",message:String(e.meta.cause)}),{success:!1,statusCode:t,message:r,errorSources:n}},Tt=e=>{let t=Ye(e.message,"An unknown error occurred with the database operation."),r=[{path:"unknown",message:t}];return{success:!1,statusCode:D.INTERNAL_SERVER_ERROR,message:t,errorSources:r}},Ot=e=>{let t=Et(e.message),r=t.split(`
+`).map(c=>c.trim()).filter(Boolean),i=t.match(/Argument `([^`]+)`/i),n=i?i[1]:"unknown",a=r.find(c=>!c.includes("Argument")&&!c.includes("\u2192")&&c.length>10)||r[0]||"Invalid query parameters provided to the database operation.",d=[{path:n,message:a}];return{success:!1,statusCode:D.BAD_REQUEST,message:a,errorSources:d}},St=e=>{let t=e.errorCode?Pt(e.errorCode):D.SERVICE_UNAVAILABLE,r=Ye(e.message,"An error occurred while initializing the Prisma Client."),i=[{path:e.errorCode||"initialization",message:r}];return{success:!1,statusCode:t,message:r,errorSources:i}},wt=()=>{let e="The database engine encountered a fatal error and crashed. Please check the logs for more details.",t=[{path:"rust-engine",message:e}];return{success:!1,statusCode:D.INTERNAL_SERVER_ERROR,message:e,errorSources:t}};import{v2 as We}from"cloudinary";import{CloudinaryStorage as Ai}from"multer-storage-cloudinary";We.config({cloud_name:E.CLOUDINARY.CLOUDINARY_CLOUD_NAME,api_key:E.CLOUDINARY.CLOUDINARY_API_KEY,api_secret:E.CLOUDINARY.CLOUDINARY_API_SECRET,secure:!0});var ze=(e,t="image")=>new Ai({cloudinary:We,params:async(r,i)=>{let n=Date.now(),a=i.originalname.split(".")[0].replace(/\s+/g,"-"),d=r.user?.id?`${r.user.id}/`:"";return{folder:`${e}/${d}`.replace(/\/$/,""),resource_type:t,public_id:`${a}-${n}`,allowed_formats:["jpg","png","jpeg","webp","gif"]}}}),na=ze(E.CLOUDINARY.USER_PROFILE_FOLDER),aa=ze(E.CLOUDINARY.MEDICINE_FOLDER),oa=ze(E.CLOUDINARY.CATEGORY_FOLDER),Pi=e=>{if(!e)return null;try{let i=new URL(e).pathname.match(/\/upload\/(?:v\d+\/)?(.+?)(?:\.[^.]+)?$/);return i&&i[1]?decodeURIComponent(i[1]):null}catch{return null}},xt=async e=>{let t=Pi(e);if(!t)return!1;let r=["image","raw","video"];for(let i of r)try{let n=await We.uploader.destroy(t,{invalidate:!0,resource_type:i});if(n.result==="ok")return!0;if(n.result==="not found")continue}catch(n){console.error(`Error deleting Cloudinary asset (${i}):`,n);continue}return!1};var Ti=(e,t,r,i)=>{if(E.NODE_ENV==="development"){let m=t.method,p=t.originalUrl||t.url;e instanceof s&&e.statusCode===V.UNAUTHORIZED?p.includes("/api/v1/auth/me")||console.warn(`[${m} ${p}] \u{1F513} ${e.message}`):e instanceof It?console.error(`[${m} ${p}] [Zod Validation Error]:`,e.issues):e instanceof SyntaxError&&"body"in e?console.error(`[${m} ${p}] [Syntax Error in Request Body]:`,e.message):console.error(`[${m} ${p}] Unexpected Error:`,e)}(async()=>{try{let m=[],p=t;p.file&&p.file.path&&m.push(p.file.path),p.files&&(Array.isArray(p.files)?p.files.forEach(A=>{A.path&&m.push(A.path)}):Object.values(p.files).forEach(A=>{Array.isArray(A)&&A.forEach(U=>{U.path&&m.push(U.path)})})),m.length>0&&await Promise.allSettled(m.map(A=>xt(A)))}catch(m){console.error("[Cleanup Warning]: Failed to remove Cloudinary assets during error handling.",m)}})();let a=V.INTERNAL_SERVER_ERROR,d="Something went wrong!",c=[{path:"",message:"Something went wrong!"}];if(e instanceof It)a=V.BAD_REQUEST,d="Validation Error",c=e.issues.map(m=>({path:m.path.length?m.path.join("."):"",message:m.message}));else if(e instanceof M.PrismaClientKnownRequestError){let m=Rt(e);a=m.statusCode??V.BAD_REQUEST,d=m.message,c=m.errorSources}else if(e instanceof M.PrismaClientValidationError){let m=Ot(e);a=m.statusCode??V.BAD_REQUEST,d=m.message,c=m.errorSources}else if(e instanceof M.PrismaClientUnknownRequestError){let m=Tt(e);a=m.statusCode??V.INTERNAL_SERVER_ERROR,d=m.message,c=m.errorSources}else if(e instanceof M.PrismaClientInitializationError){let m=St(e);a=m.statusCode??V.INTERNAL_SERVER_ERROR,d=m.message,c=m.errorSources}else if(e instanceof M.PrismaClientRustPanicError){let m=wt();a=m.statusCode??V.INTERNAL_SERVER_ERROR,d=m.message,c=m.errorSources}else e instanceof Ri.MulterError?(a=V.BAD_REQUEST,d=e.code==="LIMIT_FILE_SIZE"?`File size must not exceed ${5242880/(1024*1024)}MB`:e.message,c=[{path:"",message:d}]):e instanceof s?(a=e.statusCode,d=e.message,c=[{path:"",message:e.message}]):e instanceof Error&&(d=e.message,c=[{path:"",message:e.message}]);return r.status(a).json({success:!1,statusCode:a,message:d,errorSources:c,error:E.NODE_ENV==="development"?e:void 0,stack:E.NODE_ENV==="development"?e?.stack:void 0})},Ut=Ti;import{Router as En}from"express";import Nt from"express";import{fromNodeHeaders as Oi}from"better-auth/node";import ie from"http-status";var Si=e=>typeof e=="string"&&re.includes(e),wi=(e={})=>{let{roles:t=[],requireVerifiedEmail:r=!1}=e;return async(i,n,a)=>{try{let d=await W.api.getSession({headers:Oi(i.headers)});if(!d)throw new s(ie.UNAUTHORIZED,"Unauthorized. Please login.");let c=d.user.role;if(!Si(c))throw new s(ie.UNAUTHORIZED,"Invalid user role in session.");if(d.user.isDeleted)throw new s(ie.FORBIDDEN,"Your account has been deleted.");if(!d.user.isActive)throw new s(ie.FORBIDDEN,"Your account is inactive. Access denied.");if(d.user.isBanned)throw new s(ie.FORBIDDEN,"Your account is banned. Access denied.");if(i.user={id:d.user.id,email:d.user.email,name:d.user.name,role:c,emailVerified:d.user.emailVerified,isBanned:d.user.isBanned,isActive:d.user.isActive,isDeleted:d.user.isDeleted},r&&!i.user.emailVerified)throw new s(ie.FORBIDDEN,"Email verification required. Please check your inbox.");if(t.length&&!t.includes(c))throw new s(ie.FORBIDDEN,"Forbidden. Insufficient permissions.");a()}catch(d){a(d)}}},P=wi;import{ZodError as xi}from"zod";import ht from"http-status";var Ii=e=>(t,r,i)=>{try{if(e.body&&(t.body=e.body.parse(t.body)),e.query){let n=e.query.parse(t.query);Object.defineProperty(t,"query",{value:n,writable:!0,configurable:!0,enumerable:!0})}if(e.params){let n=e.params.parse(t.params);Object.defineProperty(t,"params",{value:n,writable:!0,configurable:!0,enumerable:!0})}i()}catch(n){if(n instanceof xi)return r.status(ht.BAD_REQUEST).json({success:!1,statusCode:ht.BAD_REQUEST,message:"Validation error",errorSources:n.issues.map(a=>({path:a.path.join("."),message:a.message}))});i(n)}},y=Ii;import ne from"http-status";var Ui=e=>(t,r,i)=>{Promise.resolve(e(t,r,i)).catch(i)},R=Ui;var Oe=e=>{if(typeof e=="string")return e;if(Array.isArray(e)&&typeof e[0]=="string")return e[0]},Mt=(e,t,r)=>{let i=Oe(e),n=Number(i);if(!i||Number.isNaN(n)||n<=0)return t;let a=Math.floor(n);return r?.min!==void 0&&a<r.min&&(a=r.min),r?.max!==void 0&&a>r.max&&(a=r.max),a},hi=e=>{let t=Mt(e.page,1,{min:1}),r=Mt(e.limit,10,{min:1,max:100}),i=Oe(e.sortBy)||"createdAt",a=Oe(e.sortOrder)==="asc"?"asc":"desc";return{page:t,limit:r,skip:(t-1)*r,sortBy:i,sortOrder:a}},g={getSingleValue:Oe,parsePagination:hi};var T=(e,t)=>{let{statusCode:r,success:i,message:n,data:a,meta:d,stats:c}=t;e.status(r).json({success:i,message:n,...a!==void 0&&{data:a},...d&&{meta:d},...c&&{stats:c}})};import _ from"http-status";var z=e=>e.toLowerCase().trim().replace(/[^\w\s-]/g,"").replace(/\s+/g,"-").replace(/-+/g,"-");var Mi=new Set(["createdAt","updatedAt","name","slug"]),Se={id:!0,name:!0,slug:!0,description:!0,imageUrl:!0,icon:!0,isActive:!0,createdAt:!0,updatedAt:!0},Dt=()=>({isActive:!0,isDeleted:!1,seller:{is:{role:"SELLER",emailVerified:!0,isActive:!0,isBanned:!1,isDeleted:!1}},category:{is:{isActive:!0,isDeleted:!1}}}),Di=()=>({medicines:{where:Dt(),select:{id:!0,name:!0,slug:!0,price:!0,imageUrl:!0,stock:!0,manufacturer:!0},orderBy:{createdAt:"desc"},take:8}}),Ct=()=>({medicines:{where:Dt(),include:{seller:{select:{id:!0,name:!0,image:!0}},reviews:{select:{rating:!0}},medicineImages:{select:{id:!0,url:!0,sortOrder:!0},orderBy:{sortOrder:"asc"}}},orderBy:{createdAt:"desc"}}}),Je=async(e,t=!1)=>{let r=await o.category.findUnique({where:{id:e},select:{id:!0,name:!0,slug:!0,isActive:!0,isDeleted:!0}});if(!r||!t&&r.isDeleted)throw new s(_.NOT_FOUND,"Category not found");return r},vt=async(e,t,r)=>{let i=await o.category.findFirst({where:{isDeleted:!1,OR:[{name:e},{slug:t}],...r?{NOT:{id:r}}:{}},select:{id:!0,name:!0,slug:!0}});if(i)throw i.name===e?new s(_.CONFLICT,"A category with this name already exists"):i.slug===t?new s(_.CONFLICT,"A category with this slug already exists"):new s(_.CONFLICT,"A category with this name or slug already exists")},bt=e=>{let t=e.length,r=e.flatMap(a=>a.reviews),i=r.length,n=i>0?Number((r.reduce((a,d)=>a+d.rating,0)/i).toFixed(2)):0;return{totalMedicines:t,totalReviews:i,averageRating:n}},Ci=async e=>{let t=e.name.trim();if(!t)throw new s(_.BAD_REQUEST,"Category name is required");let r=z(e.slug||e.name);if(!r)throw new s(_.BAD_REQUEST,"Category slug is invalid");return await vt(t,r),await o.category.create({data:{name:t,slug:r,...e.description!==void 0?{description:e.description.trim()}:{},...e.imageUrl!==void 0?{imageUrl:e.imageUrl}:{},...e.icon!==void 0?{icon:e.icon}:{},...e.isActive!==void 0?{isActive:e.isActive}:{}},select:Se})},vi=async e=>{let t=g.parsePagination(e),r=g.getSingleValue(e.searchTerm)?.trim(),i=g.getSingleValue(e.includeMedicines)==="true",n=typeof t.sortBy=="string"&&Mi.has(t.sortBy)?t.sortBy:"createdAt",a={isDeleted:!1,isActive:!0};r&&(a.OR=[{name:{contains:r,mode:"insensitive"}},{slug:{contains:r,mode:"insensitive"}},{description:{contains:r,mode:"insensitive"}}]);let d=await o.category.count({where:a});if(i){let m=await o.category.findMany({where:a,skip:t.skip,take:t.limit,orderBy:{[n]:t.sortOrder},select:{...Se,medicines:Di().medicines}});return{meta:{page:t.page,limit:t.limit,total:d,totalPages:Math.ceil(d/t.limit)},data:m.map(p=>({...p,stats:{totalMedicines:p.medicines.length}}))}}let c=await o.category.findMany({where:a,skip:t.skip,take:t.limit,orderBy:{[n]:t.sortOrder},select:Se});return{meta:{page:t.page,limit:t.limit,total:d,totalPages:Math.ceil(d/t.limit)},data:c}},bi=async e=>{await Je(e);let t=await o.category.findFirst({where:{id:e,isDeleted:!1,isActive:!0},include:Ct()});if(!t)throw new s(_.NOT_FOUND,"Category not found");return{...t,stats:bt(t.medicines)}},Ni=async e=>{let t=await o.category.findFirst({where:{slug:e,isDeleted:!1,isActive:!0},include:Ct()});if(!t)throw new s(_.NOT_FOUND,"Category not found");return{...t,stats:bt(t.medicines)}},_i=async(e,t)=>{let r=await Je(e),i={};if(t.name!==void 0){let a=t.name.trim();if(!a)throw new s(_.BAD_REQUEST,"Category name cannot be empty");i.name=a}if(t.slug!==void 0){let a=z(t.slug);if(!a)throw new s(_.BAD_REQUEST,"Category slug is invalid");i.slug=a}else if(t.name!==void 0){let a=z(t.name);if(!a)throw new s(_.BAD_REQUEST,"Category slug is invalid");i.slug=a}if(t.description!==void 0&&(i.description=t.description===null?null:t.description.trim()),t.imageUrl!==void 0&&(i.imageUrl=t.imageUrl),t.icon!==void 0&&(i.icon=t.icon),t.isActive!==void 0&&(i.isActive=t.isActive),Object.keys(i).length===0)throw new s(_.BAD_REQUEST,"No valid fields provided for update");return await vt(i.name??r.name,i.slug??r.slug,e),await o.category.update({where:{id:e},data:i,select:Se})},Fi=async e=>{if(await Je(e),await o.medicine.count({where:{categoryId:e,isDeleted:!1}})>0)throw new s(_.CONFLICT,"Category cannot be deleted because medicines are associated with it");return await o.category.update({where:{id:e},data:{isDeleted:!0,isActive:!1,deletedAt:new Date,slug:`deleted-${e}-${Date.now()}`}}),null},se={createCategory:Ci,getAllCategories:vi,getCategoryBySlug:Ni,getCategoryById:bi,updateCategory:_i,deleteCategory:Fi};var we=(e,t)=>{let r=g.getSingleValue(e);if(!r)throw new s(ne.BAD_REQUEST,`${t} is required`);return r},ki=R(async(e,t)=>{let r=await se.createCategory(e.body);T(t,{success:!0,statusCode:ne.CREATED,message:"Category created successfully",data:r})}),Li=R(async(e,t)=>{let r=await se.getAllCategories(e.query);T(t,{success:!0,statusCode:ne.OK,message:"Categories fetched successfully",meta:r.meta,data:r.data})}),Bi=R(async(e,t)=>{let r=we(e.params.slug,"Category slug"),i=await se.getCategoryBySlug(r);T(t,{success:!0,statusCode:ne.OK,message:"Category fetched successfully",data:i})}),$i=R(async(e,t)=>{let r=we(e.params.id,"Category id"),i=await se.getCategoryById(r);T(t,{success:!0,statusCode:ne.OK,message:"Category fetched successfully",data:i})}),Vi=R(async(e,t)=>{let r=we(e.params.id,"Category id"),i=await se.updateCategory(r,e.body);T(t,{success:!0,statusCode:ne.OK,message:"Category updated successfully",data:i})}),qi=R(async(e,t)=>{let r=we(e.params.id,"Category id");await se.deleteCategory(r),T(t,{success:!0,statusCode:ne.OK,message:"Category deleted successfully",data:null})}),J={createCategory:ki,getAllCategories:Li,getCategoryBySlug:Bi,getCategoryById:$i,updateCategory:Vi,deleteCategory:qi};import{z as S}from"zod";var Ze=S.object({id:S.string().uuid("Invalid category id")}),ji=S.object({slug:S.string().trim().min(2,"Slug must be at least 2 characters").max(255,"Slug cannot exceed 255 characters")}),Ki=S.object({name:S.string().trim().min(2,"Category name must be at least 2 characters").max(255,"Category name cannot exceed 255 characters"),slug:S.string().trim().min(2,"Slug must be at least 2 characters").max(255,"Slug cannot exceed 255 characters").optional(),description:S.string().trim().max(5e3,"Description is too long").optional(),imageUrl:S.string().url("Invalid image URL").optional(),icon:S.string().trim().max(255,"Icon cannot exceed 255 characters").optional(),isActive:S.boolean().optional()}),Qi=S.object({name:S.string().trim().min(2,"Category name must be at least 2 characters").max(255,"Category name cannot exceed 255 characters").optional(),slug:S.string().trim().min(2,"Slug must be at least 2 characters").max(255,"Slug cannot exceed 255 characters").optional(),description:S.union([S.string().trim().max(5e3,"Description is too long"),S.null()]).optional(),imageUrl:S.union([S.string().url("Invalid image URL"),S.null()]).optional(),icon:S.union([S.string().trim().max(255,"Icon cannot exceed 255 characters"),S.null()]).optional(),isActive:S.boolean().optional()}).refine(e=>Object.keys(e).length>0,{message:"At least one field is required to update category"}),Gi=S.object({page:S.coerce.number().int().min(1).optional(),limit:S.coerce.number().int().min(1).max(100).optional(),sortBy:S.enum(["createdAt","updatedAt","name","slug"]).optional(),sortOrder:S.enum(["asc","desc"]).optional(),searchTerm:S.string().trim().min(1).max(100).optional(),includeMedicines:S.union([S.literal("true"),S.literal("false"),S.boolean()]).optional()}),Z={createCategory:{body:Ki},getAllCategories:{query:Gi},getCategoryBySlug:{params:ji},getCategoryById:{params:Ze},updateCategory:{params:Ze,body:Qi},deleteCategory:{params:Ze}};var xe=Nt.Router();xe.get("/",y(Z.getAllCategories),J.getAllCategories);xe.get("/slug/:slug",y(Z.getCategoryBySlug),J.getCategoryBySlug);xe.get("/:id",y(Z.getCategoryById),J.getCategoryById);var Ae=Nt.Router();Ae.post("/",P({roles:[l.ADMIN],requireVerifiedEmail:!0}),y(Z.createCategory),J.createCategory);Ae.put("/:id",P({roles:[l.ADMIN],requireVerifiedEmail:!0}),y(Z.updateCategory),J.updateCategory);Ae.patch("/:id",P({roles:[l.ADMIN],requireVerifiedEmail:!0}),y(Z.updateCategory),J.updateCategory);Ae.delete("/:id",P({roles:[l.ADMIN],requireVerifiedEmail:!0}),y(Z.deleteCategory),J.deleteCategory);var _t=xe,Ft=Ae;import tt from"express";import j from"http-status";import h from"http-status";var kt=new Set(["createdAt","updatedAt","price","name","stock"]),Hi=()=>({category:{select:{id:!0,name:!0,slug:!0,imageUrl:!0,icon:!0}},seller:{select:{id:!0,name:!0,image:!0}},reviews:{select:{rating:!0}},medicineImages:{select:{id:!0,url:!0,sortOrder:!0},orderBy:{sortOrder:"asc"}}}),Yi=()=>({category:{select:{id:!0,name:!0,slug:!0,description:!0,imageUrl:!0,icon:!0,isActive:!0}},seller:{select:{id:!0,name:!0,email:!0,phone:!0,image:!0}},reviews:{include:{customer:{select:{id:!0,name:!0,image:!0}}},orderBy:{createdAt:"desc"}},medicineImages:{select:{id:!0,url:!0,sortOrder:!0},orderBy:{sortOrder:"asc"}}}),he=()=>({category:{select:{id:!0,name:!0,slug:!0,isActive:!0}},reviews:{select:{rating:!0}},medicineImages:{select:{id:!0,url:!0,sortOrder:!0},orderBy:{sortOrder:"asc"}}}),Ie=e=>{if(typeof e=="boolean")return e;let t=g.getSingleValue(e);if(t==="true")return!0;if(t==="false")return!1},Ue=e=>{let t=g.getSingleValue(e);if(t===void 0)return;let r=Number(t);return Number.isNaN(r)?void 0:r},Lt=e=>{let t=e.length,r=t>0?Number((e.reduce((i,n)=>i+n.rating,0)/t).toFixed(2)):0;return{totalReviews:t,averageRating:r}},et=e=>!e||e.length===0?[]:e.map((t,r)=>typeof t=="string"?{url:t.trim(),sortOrder:r}:{url:t.url.trim(),sortOrder:t.sortOrder??r}),Pe=e=>{let t=Lt(e.reviews),{reviews:r,...i}=e;return{...i,stats:t}},Bt=async(e,t=!1)=>{let r=await o.category.findUnique({where:{id:e},select:{id:!0,isActive:!0,isDeleted:!0}});if(!r||r.isDeleted)throw new s(h.NOT_FOUND,"Category not found");if(!t&&!r.isActive)throw new s(h.BAD_REQUEST,"This category is inactive and cannot be used");return r},Me=async e=>{let t=await o.user.findUnique({where:{id:e},select:{id:!0,role:!0,emailVerified:!0,isActive:!0,isBanned:!0,isDeleted:!0}});if(!t||t.isDeleted)throw new s(h.NOT_FOUND,"Seller not found");if(t.role!=="SELLER")throw new s(h.FORBIDDEN,"Only sellers can manage medicines");if(!t.isActive||t.isBanned)throw new s(h.FORBIDDEN,"Seller account is not eligible to manage medicines");if(!t.emailVerified)throw new s(h.FORBIDDEN,"Seller email must be verified");return t},De=async(e,t=!1)=>{let r=await o.medicine.findUnique({where:{id:e},select:{id:!0,sellerId:!0,slug:!0,isDeleted:!0}});if(!r||!t&&r.isDeleted)throw new s(h.NOT_FOUND,"Medicine not found");return r},Xe=async(e,t,r)=>{if(await o.medicine.findFirst({where:{sellerId:e,slug:t,isDeleted:!1,...r?{NOT:{id:r}}:{}},select:{id:!0}}))throw new s(h.CONFLICT,"A medicine with this slug already exists for this seller")},$t=()=>({isActive:!0,isDeleted:!1,category:{is:{isActive:!0,isDeleted:!1}},seller:{is:{role:"SELLER",emailVerified:!0,isActive:!0,isBanned:!1,isDeleted:!1}}}),Wi=async e=>{await Me(e.sellerId),await Bt(e.categoryId);let t=z(e.slug||e.name);await Xe(e.sellerId,t);let r=et(e.images),i=e.imageUrl!==void 0?e.imageUrl:r.length>0?r[0].url:void 0,n=await o.medicine.create({data:{name:e.name.trim(),slug:t,description:e.description?.trim(),price:new M.Decimal(e.price),stock:e.stock,manufacturer:e.manufacturer.trim(),categoryId:e.categoryId,sellerId:e.sellerId,...i!==void 0?{imageUrl:i}:{},...e.isActive!==void 0?{isActive:e.isActive}:{},...r.length>0?{medicineImages:{create:r.map(a=>({url:a.url,sortOrder:a.sortOrder}))}}:{}},include:he()});return Pe(n)},zi=async e=>{let t=g.parsePagination(e),r=g.getSingleValue(e.categoryId),i=g.getSingleValue(e.sellerId),n=g.getSingleValue(e.search)?.trim(),a=g.getSingleValue(e.manufacturer)?.trim(),d=Ie(e.isInStock),c=Ue(e.minPrice),m=Ue(e.maxPrice),p=kt.has(t.sortBy)?t.sortBy:"createdAt",A=$t();r&&(A.categoryId=r),i&&(A.sellerId=i),n&&(A.OR=[{name:{contains:n,mode:"insensitive"}},{description:{contains:n,mode:"insensitive"}},{manufacturer:{contains:n,mode:"insensitive"}},{slug:{contains:n,mode:"insensitive"}}]),a&&(A.manufacturer={contains:a,mode:"insensitive"}),d!==void 0&&(A.stock=d?{gt:0}:{lte:0}),(c!==void 0||m!==void 0)&&(A.price={...c!==void 0?{gte:new M.Decimal(c)}:{},...m!==void 0?{lte:new M.Decimal(m)}:{}});let[U,C]=await o.$transaction([o.medicine.findMany({where:A,skip:t.skip,take:t.limit,include:Hi(),orderBy:{[p]:t.sortOrder}}),o.medicine.count({where:A})]);return{meta:{page:t.page,limit:t.limit,total:C,totalPages:Math.ceil(C/t.limit)},data:U.map(Qe=>Pe(Qe))}},Ji=async e=>{let t=await o.medicine.findFirst({where:{id:e,...$t()},include:Yi()});if(!t)throw new s(h.NOT_FOUND,"Medicine not found");return{...t,stats:Lt(t.reviews)}},Zi=async(e,t)=>{await Me(e);let r=g.parsePagination(t),i=Ie(t.includeInactive)??!1,n=Ie(t.includeDeleted)??!1,a=Ie(t.isActive),d=g.getSingleValue(t.categoryId),c=g.getSingleValue(t.search)?.trim(),m=g.getSingleValue(t.manufacturer)?.trim(),p=Ue(t.minPrice),A=Ue(t.maxPrice),U=kt.has(r.sortBy)?r.sortBy:"createdAt",C={sellerId:e};i||(C.isActive=!0),n||(C.isDeleted=!1),a!==void 0&&(C.isActive=a),d&&(C.categoryId=d),m&&(C.manufacturer={contains:m,mode:"insensitive"}),c&&(C.OR=[{name:{contains:c,mode:"insensitive"}},{description:{contains:c,mode:"insensitive"}},{manufacturer:{contains:c,mode:"insensitive"}},{slug:{contains:c,mode:"insensitive"}}]),(p!==void 0||A!==void 0)&&(C.price={...p!==void 0?{gte:new M.Decimal(p)}:{},...A!==void 0?{lte:new M.Decimal(A)}:{}});let[Qe,lt]=await o.$transaction([o.medicine.findMany({where:C,skip:r.skip,take:r.limit,include:he(),orderBy:{[U]:r.sortOrder}}),o.medicine.count({where:C})]);return{meta:{page:r.page,limit:r.limit,total:lt,totalPages:Math.ceil(lt/r.limit)},data:Qe.map(Pr=>Pe(Pr))}},Vt=async(e,t,r,i=!1)=>{let n={};if(e.name!==void 0){let a=e.name.trim();if(!a)throw new s(h.BAD_REQUEST,"Medicine name cannot be empty");n.name=a}if(e.slug!==void 0){let a=z(e.slug);if(!a)throw new s(h.BAD_REQUEST,"Slug is invalid");await Xe(t,a,r),n.slug=a}else if(e.name!==void 0){let a=z(e.name);if(!a)throw new s(h.BAD_REQUEST,"Slug is invalid");await Xe(t,a,r),n.slug=a}if(e.description!==void 0&&(n.description=e.description===null?null:e.description.trim()),e.imageUrl!==void 0&&(n.imageUrl=e.imageUrl),e.isActive!==void 0&&(n.isActive=e.isActive),e.price!==void 0&&(n.price=new M.Decimal(e.price)),e.stock!==void 0&&(n.stock=e.stock),e.manufacturer!==void 0){let a=e.manufacturer.trim();if(!a)throw new s(h.BAD_REQUEST,"Manufacturer cannot be empty");n.manufacturer=a}if(e.categoryId!==void 0&&(await Bt(e.categoryId,i),n.category={connect:{id:e.categoryId}}),Object.keys(n).length===0&&e.images===void 0)throw new s(h.BAD_REQUEST,"No valid fields provided for update");return n},Xi=async(e,t,r)=>{if(await Me(r),(await De(e)).sellerId!==r)throw new s(h.FORBIDDEN,"Forbidden: you are not allowed to update this medicine");let n=await Vt(t,r,e),a=et(t.images),d=t.images!==void 0,c=t.imageUrl!==void 0?t.imageUrl:d?a[0]?.url??null:void 0,m=await o.$transaction(async p=>(d&&await p.medicineImage.deleteMany({where:{medicineId:e}}),await p.medicine.update({where:{id:e},data:{...n,...c!==void 0?{imageUrl:c}:{},...d?{medicineImages:{create:a.map(U=>({url:U.url,sortOrder:U.sortOrder}))}}:{}},include:he()})));return Pe(m)},es=async(e,t)=>{await Me(t);let r=await De(e,!0);if(r.sellerId!==t)throw new s(h.FORBIDDEN,"Forbidden: you are not allowed to delete this medicine");if(r.isDeleted)throw new s(h.BAD_REQUEST,"Medicine is already deleted");return await o.medicine.update({where:{id:e},data:{isDeleted:!0,deletedAt:new Date,isActive:!1,slug:`${r.slug}-deleted-${Date.now()}`}}),null},ts=async(e,t)=>{let r=await De(e,!0),i=await Vt(t,r.sellerId,e,!0),n=et(t.images),a=t.images!==void 0,d=t.imageUrl!==void 0?t.imageUrl:a?n[0]?.url??null:void 0,c=await o.$transaction(async m=>(a&&await m.medicineImage.deleteMany({where:{medicineId:e}}),await m.medicine.update({where:{id:e},data:{...i,...d!==void 0?{imageUrl:d}:{},...a?{medicineImages:{create:n.map(A=>({url:A.url,sortOrder:A.sortOrder}))}}:{}},include:he()})));return Pe(c)},rs=async(e,t={})=>{let r=await De(e,!0);if(t.hardDelete){if(await o.orderItem.count({where:{medicineId:e}})>0)throw new s(h.CONFLICT,"Medicine cannot be permanently deleted because related order items exist");return await o.medicine.delete({where:{id:e}}),null}if(r.isDeleted)throw new s(h.BAD_REQUEST,"Medicine is already deleted");return await o.medicine.update({where:{id:e},data:{isDeleted:!0,deletedAt:new Date,isActive:!1,slug:`${r.slug}-deleted-${Date.now()}`}}),null},q={createMedicine:Wi,getAllMedicines:zi,getMedicineById:Ji,getSellerMedicines:Zi,updateMedicineForSeller:Xi,deleteMedicineForSeller:es,updateMedicineAsAdmin:ts,deleteMedicineAsAdmin:rs};var Ee=(e,t)=>{let r=g.getSingleValue(e);if(!r)throw new s(j.BAD_REQUEST,`${t} is required`);return r},is=R(async(e,t)=>{let r=await q.createMedicine({...e.body,sellerId:e.user.id});T(t,{success:!0,statusCode:j.CREATED,message:"Medicine created successfully",data:r})}),ss=R(async(e,t)=>{let r=await q.getAllMedicines(e.query);T(t,{success:!0,statusCode:j.OK,message:"Medicines fetched successfully",meta:r.meta,data:r.data})}),ns=R(async(e,t)=>{let r=Ee(e.params.id,"Medicine id"),i=await q.getMedicineById(r);T(t,{success:!0,statusCode:j.OK,message:"Medicine fetched successfully",data:i})}),as=R(async(e,t)=>{let r=await q.getSellerMedicines(e.user.id,e.query);T(t,{success:!0,statusCode:j.OK,message:"Seller medicines fetched successfully",meta:r.meta,data:r.data})}),os=R(async(e,t)=>{let r=Ee(e.params.id,"Medicine id"),i=await q.updateMedicineForSeller(r,e.body,e.user.id);T(t,{success:!0,statusCode:j.OK,message:"Medicine updated successfully",data:i})}),ds=R(async(e,t)=>{let r=Ee(e.params.id,"Medicine id");await q.deleteMedicineForSeller(r,e.user.id),T(t,{success:!0,statusCode:j.OK,message:"Medicine deleted successfully",data:null})}),ls=R(async(e,t)=>{let r=Ee(e.params.id,"Medicine id"),i=await q.updateMedicineAsAdmin(r,e.body);T(t,{success:!0,statusCode:j.OK,message:"Medicine updated successfully",data:i})}),us=R(async(e,t)=>{let r=Ee(e.params.id,"Medicine id"),i=g.getSingleValue(e.query.hardDelete)==="true";await q.deleteMedicineAsAdmin(r,{hardDelete:i}),T(t,{success:!0,statusCode:j.OK,message:i?"Medicine permanently deleted successfully":"Medicine deleted successfully",data:null})}),F={createMedicine:is,getAllMedicines:ss,getMedicineById:ns,getSellerMedicines:as,updateMedicine:os,deleteMedicine:ds,adminUpdateMedicine:ls,adminDeleteMedicine:us};import{z as u}from"zod";var Re=u.object({id:u.string().uuid("Invalid medicine id")}),jt=u.union([u.string().url("Each image must be a valid URL"),u.object({url:u.string().url("Each image must be a valid URL"),sortOrder:u.coerce.number().int().min(0).optional()})]),cs=u.object({name:u.string().trim().min(2,"Medicine name must be at least 2 characters").max(255,"Medicine name cannot exceed 255 characters"),slug:u.string().trim().min(2,"Slug must be at least 2 characters").max(255,"Slug cannot exceed 255 characters").optional(),description:u.string().trim().max(5e3,"Description is too long").optional(),price:u.coerce.number().positive("Price must be greater than 0"),stock:u.coerce.number().int("Stock must be an integer").min(0,"Stock cannot be negative"),manufacturer:u.string().trim().min(2,"Manufacturer must be at least 2 characters").max(255,"Manufacturer cannot exceed 255 characters"),categoryId:u.string().uuid("Invalid category id"),imageUrl:u.string().url("Invalid image URL").optional(),images:u.array(jt).max(10,"Maximum 10 images are allowed").optional(),isActive:u.boolean().optional()}),qt=u.object({name:u.string().trim().min(2,"Medicine name must be at least 2 characters").max(255,"Medicine name cannot exceed 255 characters").optional(),slug:u.string().trim().min(2,"Slug must be at least 2 characters").max(255,"Slug cannot exceed 255 characters").optional(),description:u.union([u.string().trim().max(5e3,"Description is too long"),u.null()]).optional(),price:u.coerce.number().positive("Price must be greater than 0").optional(),stock:u.coerce.number().int("Stock must be an integer").min(0,"Stock cannot be negative").optional(),manufacturer:u.string().trim().min(2,"Manufacturer must be at least 2 characters").max(255,"Manufacturer cannot exceed 255 characters").optional(),categoryId:u.string().uuid("Invalid category id").optional(),imageUrl:u.union([u.string().url("Invalid image URL"),u.null()]).optional(),images:u.array(jt).max(10,"Maximum 10 images are allowed").optional(),isActive:u.boolean().optional()}).refine(e=>Object.keys(e).length>0,{message:"At least one field is required to update medicine"}),ms=u.object({page:u.coerce.number().int().min(1).optional(),limit:u.coerce.number().int().min(1).max(100).optional(),sortBy:u.enum(["createdAt","updatedAt","price","name","stock"]).optional(),sortOrder:u.enum(["asc","desc"]).optional(),categoryId:u.string().uuid("Invalid category id").optional(),sellerId:u.string().uuid("Invalid seller id").optional(),search:u.string().trim().min(1).max(100).optional(),manufacturer:u.string().trim().min(1).max(100).optional(),minPrice:u.coerce.number().min(0).optional(),maxPrice:u.coerce.number().min(0).optional(),isInStock:u.union([u.literal("true"),u.literal("false"),u.boolean()]).transform(e=>typeof e=="boolean"?e:e==="true").optional()}).refine(e=>e.minPrice===void 0||e.maxPrice===void 0||e.minPrice<=e.maxPrice,{message:"minPrice cannot be greater than maxPrice",path:["minPrice"]}),ps=u.object({includeInactive:u.union([u.literal("true"),u.literal("false"),u.boolean()]).transform(e=>typeof e=="boolean"?e:e==="true").optional(),includeDeleted:u.union([u.literal("true"),u.literal("false"),u.boolean()]).transform(e=>typeof e=="boolean"?e:e==="true").optional(),page:u.coerce.number().int().min(1).optional(),limit:u.coerce.number().int().min(1).max(100).optional(),sortBy:u.enum(["createdAt","updatedAt","price","name","stock"]).optional(),sortOrder:u.enum(["asc","desc"]).optional(),search:u.string().trim().min(1).max(100).optional(),categoryId:u.string().uuid("Invalid category id").optional(),manufacturer:u.string().trim().min(1).max(100).optional(),minPrice:u.coerce.number().min(0).optional(),maxPrice:u.coerce.number().min(0).optional(),isActive:u.union([u.literal("true"),u.literal("false"),u.boolean()]).transform(e=>typeof e=="boolean"?e:e==="true").optional()}).refine(e=>e.minPrice===void 0||e.maxPrice===void 0||e.minPrice<=e.maxPrice,{message:"minPrice cannot be greater than maxPrice",path:["minPrice"]}),gs=u.object({hardDelete:u.union([u.literal("true"),u.literal("false"),u.boolean()]).transform(e=>typeof e=="boolean"?e:e==="true").optional()}),k={getAllMedicines:{query:ms},getMedicineById:{params:Re},createMedicine:{body:cs},getSellerMedicines:{query:ps},updateMedicine:{params:Re,body:qt},deleteMedicine:{params:Re},adminUpdateMedicine:{params:Re,body:qt},adminDeleteMedicine:{params:Re,query:gs}};var rt=tt.Router();rt.get("/",y(k.getAllMedicines),F.getAllMedicines);rt.get("/:id",y(k.getMedicineById),F.getMedicineById);var ue=tt.Router();ue.post("/",P({roles:[l.SELLER],requireVerifiedEmail:!0}),y(k.createMedicine),F.createMedicine);ue.get("/",P({roles:[l.SELLER],requireVerifiedEmail:!0}),y(k.getSellerMedicines),F.getSellerMedicines);ue.put("/:id",P({roles:[l.SELLER],requireVerifiedEmail:!0}),y(k.updateMedicine),F.updateMedicine);ue.patch("/:id",P({roles:[l.SELLER],requireVerifiedEmail:!0}),y(k.updateMedicine),F.updateMedicine);ue.delete("/:id",P({roles:[l.SELLER],requireVerifiedEmail:!0}),y(k.deleteMedicine),F.deleteMedicine);var Ce=tt.Router();Ce.put("/:id",P({roles:[l.ADMIN],requireVerifiedEmail:!0}),y(k.adminUpdateMedicine),F.adminUpdateMedicine);Ce.patch("/:id",P({roles:[l.ADMIN],requireVerifiedEmail:!0}),y(k.adminUpdateMedicine),F.adminUpdateMedicine);Ce.delete("/:id",P({roles:[l.ADMIN],requireVerifiedEmail:!0}),y(k.adminDeleteMedicine),F.adminDeleteMedicine);var Kt=rt,Qt=ue,Gt=Ce;import at from"express";import ee from"http-status";import I from"http-status";var ve={PLACED:"PLACED",PROCESSING:"PROCESSING",SHIPPED:"SHIPPED",DELIVERED:"DELIVERED",CANCELLED:"CANCELLED"},Ht=Object.values(ve);var Yt=new Set(["createdAt","updatedAt","totalAmount","status","paymentStatus"]),X=Ht,ce=Object.values(le),me={customer:{select:{id:!0,name:!0,email:!0,phone:!0,image:!0}},items:{include:{seller:{select:{id:!0,name:!0,email:!0,phone:!0,image:!0}},medicine:{select:{id:!0,name:!0,slug:!0,manufacturer:!0,imageUrl:!0,price:!0,stock:!0,isActive:!0,isDeleted:!0}}},orderBy:{createdAt:"asc"}}};var it=(e,t,r)=>({page:e,limit:t,total:r,totalPages:Math.ceil(r/t)}),be=async e=>{let t=await o.user.findUnique({where:{id:e},select:{id:!0,role:!0,emailVerified:!0,isActive:!0,isBanned:!0,isDeleted:!0}});if(!t||t.isDeleted)throw new s(I.NOT_FOUND,"Customer not found");if(t.role!==l.CUSTOMER)throw new s(I.FORBIDDEN,"Only customers can place orders");if(!t.isActive||t.isBanned)throw new s(I.FORBIDDEN,"Customer account is not eligible to place orders");if(!t.emailVerified)throw new s(I.FORBIDDEN,"Customer email must be verified");return t},ys=e=>{let t=new Map;for(let r of e){if(!r.medicineId)throw new s(I.BAD_REQUEST,"Medicine id is required");if(!Number.isInteger(r.quantity)||r.quantity<=0)throw new s(I.BAD_REQUEST,"Quantity must be a positive integer");t.set(r.medicineId,(t.get(r.medicineId)??0)+r.quantity)}return Array.from(t.entries()).map(([r,i])=>({medicineId:r,quantity:i}))},fs=async e=>{if(!e.customerId)throw new s(I.BAD_REQUEST,"customerId is required");if(!e.shippingAddress||typeof e.shippingAddress!="string")throw new s(I.BAD_REQUEST,"shippingAddress is required");if(!Array.isArray(e.items)||e.items.length===0)throw new s(I.BAD_REQUEST,"Order items are required");await be(e.customerId);let t=ys(e.items),r=t.map(p=>p.medicineId),i=await o.medicine.findMany({where:{id:{in:r},isActive:!0,isDeleted:!1,seller:{is:{role:"SELLER",emailVerified:!0,isActive:!0,isBanned:!1,isDeleted:!1}},category:{is:{isActive:!0,isDeleted:!1}}},select:{id:!0,name:!0,slug:!0,manufacturer:!0,imageUrl:!0,price:!0,stock:!0,sellerId:!0}});if(i.length!==r.length)throw new s(I.NOT_FOUND,"One or more medicines not found or inactive");if(new Set(i.map(p=>p.sellerId)).size>1)throw new s(I.BAD_REQUEST,"For now, one order can contain medicines from only one seller");let a=new Map(i.map(p=>[p.id,p])),d=t.map(p=>{let A=a.get(p.medicineId);if(!A)throw new s(I.NOT_FOUND,"Medicine not found");return{medicineId:p.medicineId,sellerId:A.sellerId,quantity:p.quantity,price:A.price,medicineName:A.name,medicineSlug:A.slug,manufacturer:A.manufacturer,imageUrl:A.imageUrl??null}}),c=new M.Decimal(0);for(let p of d)c=c.plus(new M.Decimal(p.price).mul(p.quantity));return await o.$transaction(async p=>{for(let U of d)if((await p.medicine.updateMany({where:{id:U.medicineId,stock:{gte:U.quantity},isActive:!0,isDeleted:!1},data:{stock:{decrement:U.quantity}}})).count!==1)throw new s(I.CONFLICT,"Insufficient stock for one or more items");return await p.order.create({data:{customerId:e.customerId,totalAmount:c,shippingAddress:e.shippingAddress.trim(),items:{createMany:{data:d.map(U=>({medicineId:U.medicineId,sellerId:U.sellerId,quantity:U.quantity,price:U.price,medicineName:U.medicineName,medicineSlug:U.medicineSlug,manufacturer:U.manufacturer,imageUrl:U.imageUrl}))}}},include:me})})},As=async(e,t)=>{await be(e);let r=g.parsePagination(t),i=g.getSingleValue(t.status),n=g.getSingleValue(t.paymentStatus),a=Yt.has(r.sortBy)?r.sortBy:"createdAt",d,c;if(i){if(!X.includes(i))throw new s(I.BAD_REQUEST,`Invalid order status. Must be one of: ${X.join(", ")}`);d=i}if(n){if(!ce.includes(n))throw new s(I.BAD_REQUEST,`Invalid payment status. Must be one of: ${ce.join(", ")}`);c=n}let m={customerId:e,...d?{status:d}:{},...c?{paymentStatus:c}:{}},[p,A]=await o.$transaction([o.order.findMany({where:m,skip:r.skip,take:r.limit,include:me,orderBy:{[a]:r.sortOrder}}),o.order.count({where:m})]);return{meta:it(r.page,r.limit,A),data:p}},Ps=async(e,t)=>{await be(t);let r=await o.order.findUnique({where:{id:e},include:me});if(!r)throw new s(I.NOT_FOUND,"Order not found");if(r.customerId!==t)throw new s(I.FORBIDDEN,"Forbidden: order does not belong to you");return r},Es=async e=>{let t=g.parsePagination(e),r=g.getSingleValue(e.status),i=g.getSingleValue(e.paymentStatus),n=g.getSingleValue(e.customerId),a=Yt.has(t.sortBy)?t.sortBy:"createdAt",d,c;if(r){if(!X.includes(r))throw new s(I.BAD_REQUEST,`Invalid order status. Must be one of: ${X.join(", ")}`);d=r}if(i){if(!ce.includes(i))throw new s(I.BAD_REQUEST,`Invalid payment status. Must be one of: ${ce.join(", ")}`);c=i}let m={...n?{customerId:n}:{},...d?{status:d}:{},...c?{paymentStatus:c}:{}},[p,A]=await o.$transaction([o.order.findMany({where:m,skip:t.skip,take:t.limit,include:me,orderBy:{[a]:t.sortOrder}}),o.order.count({where:m})]);return{meta:it(t.page,t.limit,A),data:p}},Rs=async(e,t)=>{let r=g.parsePagination(t),i=g.getSingleValue(t.status),n=g.getSingleValue(t.paymentStatus),d=new Set(["createdAt","price","quantity"]).has(r.sortBy)?r.sortBy:"createdAt",c,m;if(i){if(!X.includes(i))throw new s(I.BAD_REQUEST,`Invalid order status. Must be one of: ${X.join(", ")}`);c=i}if(n){if(!ce.includes(n))throw new s(I.BAD_REQUEST,`Invalid payment status. Must be one of: ${ce.join(", ")}`);m=n}let p={...c?{status:c}:{},...m?{paymentStatus:m}:{}},A={sellerId:e,...Object.keys(p).length>0?{order:{is:p}}:{}},[U,C]=await o.$transaction([o.orderItem.findMany({where:A,skip:r.skip,take:r.limit,include:{order:{select:{id:!0,customerId:!0,totalAmount:!0,status:!0,paymentStatus:!0,shippingAddress:!0,createdAt:!0,updatedAt:!0,customer:{select:{id:!0,name:!0,email:!0,phone:!0,image:!0}}}},seller:{select:{id:!0,name:!0,email:!0,phone:!0,image:!0}},medicine:{select:{id:!0,name:!0,slug:!0,manufacturer:!0,imageUrl:!0,price:!0,stock:!0,isActive:!0,isDeleted:!0}}},orderBy:{[d]:r.sortOrder}}),o.orderItem.count({where:A})]);return{meta:it(r.page,r.limit,C),data:U}},Ts=async(e,t,r)=>{if(!X.includes(t))throw new s(I.BAD_REQUEST,`Invalid order status. Must be one of: ${X.join(", ")}`);let i=await o.order.findUnique({where:{id:e},include:{items:!0}});if(!i)throw new s(I.NOT_FOUND,"Order not found");if(r.role===l.SELLER&&!i.items.every(c=>c.sellerId===r.sellerId))throw new s(I.FORBIDDEN,"Forbidden: this order contains items from other sellers");if(i.status===v.CANCELLED)throw new s(I.CONFLICT,"Cancelled orders cannot be updated");if(i.status===v.DELIVERED)throw new s(I.CONFLICT,"Delivered orders cannot be updated");if(!{PLACED:[v.PROCESSING,v.CANCELLED],PROCESSING:[v.SHIPPED,v.CANCELLED],SHIPPED:[v.DELIVERED],DELIVERED:[],CANCELLED:[]}[i.status].includes(t))throw new s(I.CONFLICT,`Invalid status transition from ${i.status} to ${t}`);return await o.order.update({where:{id:e},data:{status:t},include:me})},Os=async(e,t)=>{await be(t);let r=await o.order.findUnique({where:{id:e},include:{items:!0}});if(!r)throw new s(I.NOT_FOUND,"Order not found");if(r.customerId!==t)throw new s(I.FORBIDDEN,"Forbidden: cannot cancel someone else's order");if(r.status!==ve.PLACED)throw new s(I.CONFLICT,"Only placed orders can be cancelled");return await o.$transaction(async n=>{for(let d of r.items)await n.medicine.update({where:{id:d.medicineId},data:{stock:{increment:d.quantity}}});return await n.order.update({where:{id:e},data:{status:ve.CANCELLED},include:me})})},K={createOrder:fs,getUserOrders:As,getOrderByIdForCustomer:Ps,getAllOrders:Es,getSellerOrders:Rs,updateOrderStatus:Ts,cancelOrder:Os};var st=(e,t)=>{let r=g.getSingleValue(e);if(!r)throw new s(ee.BAD_REQUEST,`${t} is required`);return r},Ss=R(async(e,t)=>{let r=await K.createOrder({customerId:e.user.id,shippingAddress:e.body.shippingAddress,items:e.body.items});T(t,{success:!0,statusCode:ee.CREATED,message:"Order created successfully",data:r})}),ws=R(async(e,t)=>{let r=await K.getUserOrders(e.user.id,e.query);T(t,{success:!0,statusCode:ee.OK,message:"Orders fetched successfully",meta:r.meta,data:r.data})}),xs=R(async(e,t)=>{let r=st(e.params.id,"Order id"),i=await K.getOrderByIdForCustomer(r,e.user.id);T(t,{success:!0,statusCode:ee.OK,message:"Order fetched successfully",data:i})}),Is=R(async(e,t)=>{let r=st(e.params.id,"Order id"),i=await K.cancelOrder(r,e.user.id);T(t,{success:!0,statusCode:ee.OK,message:"Order cancelled successfully",data:i})}),Us=R(async(e,t)=>{let r=await K.getSellerOrders(e.user.id,e.query);T(t,{success:!0,statusCode:ee.OK,message:"Seller orders fetched successfully",meta:r.meta,data:r.data})}),hs=R(async(e,t)=>{let r=st(e.params.id,"Order id"),i=e.body.status,n=e.user.role===l.SELLER?await K.updateOrderStatus(r,i,{role:l.SELLER,sellerId:e.user.id}):await K.updateOrderStatus(r,i,{role:l.ADMIN});T(t,{success:!0,statusCode:ee.OK,message:"Order status updated successfully",data:n})}),Ms=R(async(e,t)=>{let r=await K.getAllOrders(e.query);T(t,{success:!0,statusCode:ee.OK,message:"Orders fetched successfully",meta:r.meta,data:r.data})}),L={createOrder:Ss,getUserOrders:ws,getOrderById:xs,cancelOrder:Is,getSellerOrders:Us,updateOrderStatus:hs,getAllOrders:Ms};import{z as w}from"zod";var nt=w.object({id:w.string().uuid("Invalid order id")}),Wt=w.object({shippingAddress:w.string({message:"Shipping address is required"}).trim().min(5,"Shipping address must be at least 5 characters").max(2e3,"Shipping address is too long"),items:w.array(w.object({medicineId:w.string({message:"Medicine ID is required"}).uuid("Invalid medicine id"),quantity:w.number({message:"Quantity is required"}).int("Quantity must be an integer").positive("Quantity must be a positive integer")})).min(1,"At least one item is required")}),Ds=w.object({page:w.coerce.number().int().min(1).optional(),limit:w.coerce.number().int().min(1).max(100).optional(),sortBy:w.enum(["createdAt","updatedAt","totalAmount","status","paymentStatus"]).optional(),sortOrder:w.enum(["asc","desc"]).optional(),status:w.nativeEnum(v).optional(),paymentStatus:w.nativeEnum(le).optional()}),Cs=w.object({page:w.coerce.number().int().min(1).optional(),limit:w.coerce.number().int().min(1).max(100).optional(),sortBy:w.enum(["createdAt","price","quantity"]).optional(),sortOrder:w.enum(["asc","desc"]).optional(),status:w.nativeEnum(v).optional(),paymentStatus:w.nativeEnum(le).optional()}),vs=w.object({page:w.coerce.number().int().min(1).optional(),limit:w.coerce.number().int().min(1).max(100).optional(),sortBy:w.enum(["createdAt","updatedAt","totalAmount","status","paymentStatus"]).optional(),sortOrder:w.enum(["asc","desc"]).optional(),status:w.nativeEnum(v).optional(),paymentStatus:w.nativeEnum(le).optional(),customerId:w.string().uuid("Invalid customer id").optional()}),zt=w.object({status:w.nativeEnum(v,{message:"Status is required"})}),B={createOrder:{body:Wt},getCustomerOrders:{query:Ds},getSellerOrders:{query:Cs},getAllOrders:{query:vs},getOrderById:{params:nt},cancelOrder:{params:nt},updateOrderStatus:{params:nt,body:zt},createOrderValidationSchema:{body:Wt},updateOrderStatusValidationSchema:{body:zt}};var Te=at.Router();Te.post("/",P({roles:[l.CUSTOMER],requireVerifiedEmail:!0}),y(B.createOrder),L.createOrder);Te.get("/",P({roles:[l.CUSTOMER],requireVerifiedEmail:!0}),y(B.getCustomerOrders),L.getUserOrders);Te.get("/:id",P({roles:[l.CUSTOMER],requireVerifiedEmail:!0}),y(B.getOrderById),L.getOrderById);Te.patch("/:id/cancel",P({roles:[l.CUSTOMER],requireVerifiedEmail:!0}),y(B.cancelOrder),L.cancelOrder);var Ne=at.Router();Ne.get("/",P({roles:[l.SELLER],requireVerifiedEmail:!0}),y(B.getSellerOrders),L.getSellerOrders);Ne.patch("/:id",P({roles:[l.SELLER],requireVerifiedEmail:!0}),y(B.updateOrderStatus),L.updateOrderStatus);Ne.patch("/:id/status",P({roles:[l.SELLER],requireVerifiedEmail:!0}),y(B.updateOrderStatus),L.updateOrderStatus);var _e=at.Router();_e.get("/",P({roles:[l.ADMIN],requireVerifiedEmail:!0}),y(B.getAllOrders),L.getAllOrders);_e.patch("/:id",P({roles:[l.ADMIN],requireVerifiedEmail:!0}),y(B.updateOrderStatus),L.updateOrderStatus);_e.patch("/:id/status",P({roles:[l.ADMIN],requireVerifiedEmail:!0}),y(B.updateOrderStatus),L.updateOrderStatus);var Jt=Te,Zt=Ne,Xt=_e;import Ys from"express";import ge from"http-status";import b from"http-status";var er=new Set(["createdAt","updatedAt","rating"]),Fe={customer:{select:{id:!0,name:!0,image:!0}},medicine:{select:{id:!0,name:!0,slug:!0,imageUrl:!0,manufacturer:!0,isActive:!0,isDeleted:!0,seller:{select:{id:!0,name:!0}}}}},tr=(e,t,r)=>({page:e,limit:t,total:r,totalPages:Math.ceil(r/t)}),bs=e=>{if(typeof e=="boolean")return e;let t=g.getSingleValue(e);if(t==="true")return!0;if(t==="false")return!1},ke=async e=>{let t=await o.user.findUnique({where:{id:e},select:{id:!0,role:!0,emailVerified:!0,isActive:!0,isBanned:!0,isDeleted:!0}});if(!t||t.isDeleted)throw new s(b.NOT_FOUND,"Customer not found");if(t.role!==l.CUSTOMER)throw new s(b.FORBIDDEN,"Only customers can review medicines");if(!t.isActive||t.isBanned)throw new s(b.FORBIDDEN,"Customer account is not eligible to review medicines");if(!t.emailVerified)throw new s(b.FORBIDDEN,"Customer email must be verified");return t},rr=async e=>{let t=await o.medicine.findUnique({where:{id:e},select:{id:!0,isActive:!0,isDeleted:!0,seller:{select:{id:!0,role:!0,emailVerified:!0,isActive:!0,isBanned:!0,isDeleted:!0}},category:{select:{id:!0,isActive:!0,isDeleted:!0}}}});if(!t||t.isDeleted)throw new s(b.NOT_FOUND,"Medicine not found");if(!t.isActive)throw new s(b.BAD_REQUEST,"This medicine is inactive");if(!t.category||t.category.isDeleted||!t.category.isActive)throw new s(b.BAD_REQUEST,"This medicine category is inactive");if(!t.seller||t.seller.isDeleted||t.seller.role!==l.SELLER||!t.seller.emailVerified||!t.seller.isActive||t.seller.isBanned)throw new s(b.BAD_REQUEST,"This medicine is not available for review");return t},ir=async(e,t=!1)=>{let r=await o.review.findUnique({where:{id:e},select:{id:!0,customerId:!0,medicineId:!0,isDeleted:!0,isPublished:!0}});if(!r||!t&&r.isDeleted)throw new s(b.NOT_FOUND,"Review not found");return r},Ns=async e=>{if(await ke(e.customerId),await rr(e.medicineId),!await o.orderItem.findFirst({where:{medicineId:e.medicineId,order:{is:{customerId:e.customerId,status:v.DELIVERED}}},select:{id:!0}}))throw new s(b.FORBIDDEN,"You can review this medicine only after it has been delivered to you");let r=await o.review.findFirst({where:{customerId:e.customerId,medicineId:e.medicineId},select:{id:!0,isDeleted:!0}});if(r&&!r.isDeleted)throw new s(b.CONFLICT,"You have already reviewed this medicine");return r&&r.isDeleted?await o.review.update({where:{id:r.id},data:{rating:e.rating,comment:e.comment.trim(),isDeleted:!1,deletedAt:null,isPublished:!0},include:Fe}):await o.review.create({data:{customerId:e.customerId,medicineId:e.medicineId,rating:e.rating,comment:e.comment.trim()},include:Fe})},_s=async(e,t)=>{await rr(e);let r=g.parsePagination(t),i=er.has(r.sortBy)?r.sortBy:"createdAt",n=g.getSingleValue(t.minRating),a=n!==void 0&&!Number.isNaN(Number(n))?Number(n):void 0,d={medicineId:e,isDeleted:!1,isPublished:!0};a!==void 0&&(d.rating={gte:a});let[c,m,p]=await o.$transaction([o.review.findMany({where:d,skip:r.skip,take:r.limit,include:{customer:{select:{id:!0,name:!0,image:!0}}},orderBy:{[i]:r.sortOrder}}),o.review.count({where:d}),o.review.aggregate({where:d,_avg:{rating:!0},_count:{rating:!0}})]);return{meta:tr(r.page,r.limit,m),summary:{averageRating:Number((p._avg.rating??0).toFixed(2)),totalReviews:p._count.rating??0},data:c}},Fs=async(e,t)=>{await ke(e);let r=g.parsePagination(t),i=bs(t.includeDeleted)??!1,n=er.has(r.sortBy)?r.sortBy:"createdAt",a={customerId:e,...i?{}:{isDeleted:!1}},[d,c]=await o.$transaction([o.review.findMany({where:a,skip:r.skip,take:r.limit,include:Fe,orderBy:{[n]:r.sortOrder}}),o.review.count({where:a})]);return{meta:tr(r.page,r.limit,c),data:d}},ks=async(e,t,r)=>{if(await ke(t),(await ir(e)).customerId!==t)throw new s(b.FORBIDDEN,"Forbidden: you cannot update this review");let n={};if(r.rating!==void 0&&(n.rating=r.rating),r.comment!==void 0){let d=r.comment.trim();if(!d)throw new s(b.BAD_REQUEST,"Comment cannot be empty");n.comment=d}if(Object.keys(n).length===0)throw new s(b.BAD_REQUEST,"No valid fields provided for update");return await o.review.update({where:{id:e},data:n,include:Fe})},Ls=async(e,t)=>{if(await ke(t),(await ir(e)).customerId!==t)throw new s(b.FORBIDDEN,"Forbidden: you cannot delete this review");return await o.review.update({where:{id:e},data:{isDeleted:!0,deletedAt:new Date,isPublished:!1}}),null},pe={createReview:Ns,getMedicineReviews:_s,getUserReviews:Fs,updateReview:ks,deleteReview:Ls};var ot=(e,t)=>{let r=g.getSingleValue(e);if(!r)throw new s(ge.BAD_REQUEST,`${t} is required`);return r},Bs=R(async(e,t)=>{let r=await pe.createReview({customerId:e.user.id,medicineId:e.body.medicineId,rating:e.body.rating,comment:e.body.comment});T(t,{success:!0,statusCode:ge.CREATED,message:"Review created successfully",data:r})}),$s=R(async(e,t)=>{let r=ot(e.params.medicineId,"Medicine id"),i=await pe.getMedicineReviews(r,e.query);T(t,{success:!0,statusCode:ge.OK,message:"Reviews fetched successfully",meta:i.meta,data:i.data})}),Vs=R(async(e,t)=>{let r=await pe.getUserReviews(e.user.id,e.query);T(t,{success:!0,statusCode:ge.OK,message:"My reviews fetched successfully",meta:r.meta,data:r.data})}),qs=R(async(e,t)=>{let r=ot(e.params.id,"Review id"),i=await pe.updateReview(r,e.user.id,e.body);T(t,{success:!0,statusCode:ge.OK,message:"Review updated successfully",data:i})}),js=R(async(e,t)=>{let r=ot(e.params.id,"Review id");await pe.deleteReview(r,e.user.id),T(t,{success:!0,statusCode:ge.OK,message:"Review deleted successfully",data:null})}),ae={createReview:Bs,getMedicineReviews:$s,getMyReviews:Vs,updateReview:qs,deleteReview:js};import{z as x}from"zod";var sr=x.object({id:x.string().uuid("Invalid review id")}),Ks=x.object({medicineId:x.string().uuid("Invalid medicine id")}),nr=x.object({medicineId:x.string({message:"Medicine ID is required"}).uuid("Invalid medicine id"),rating:x.number({message:"Rating is required"}).int("Rating must be an integer").min(1,"Rating must be at least 1").max(5,"Rating must be at most 5"),comment:x.string({message:"Comment is required"}).trim().min(3,"Comment must be at least 3 characters").max(3e3,"Comment is too long")}),ar=x.object({rating:x.number().int("Rating must be an integer").min(1,"Rating must be at least 1").max(5,"Rating must be at most 5").optional(),comment:x.string().trim().min(3,"Comment must be at least 3 characters").max(3e3,"Comment is too long").optional()}).refine(e=>Object.keys(e).length>0,{message:"At least one field is required to update review"}),Qs=x.object({page:x.coerce.number().int().min(1).optional(),limit:x.coerce.number().int().min(1).max(100).optional(),sortBy:x.enum(["createdAt","updatedAt","rating"]).optional(),sortOrder:x.enum(["asc","desc"]).optional()}),Gs=x.object({page:x.coerce.number().int().min(1).optional(),limit:x.coerce.number().int().min(1).max(100).optional(),sortBy:x.enum(["createdAt","updatedAt","rating"]).optional(),sortOrder:x.enum(["asc","desc"]).optional(),minRating:x.coerce.number().int().min(1).max(5).optional()}),Hs=x.object({page:x.coerce.number().int().min(1).optional(),limit:x.coerce.number().int().min(1).max(100).optional(),sortBy:x.enum(["createdAt","updatedAt","rating"]).optional(),sortOrder:x.enum(["asc","desc"]).optional(),includeDeleted:x.union([x.literal("true"),x.literal("false"),x.boolean()]).optional()}),oe={createReview:{body:nr},getMedicineReviews:{params:Ks,query:Gs},getMyReviews:{query:Hs},updateReview:{params:sr,body:ar},deleteReview:{params:sr},createReviewValidationSchema:{body:nr},updateReviewValidationSchema:{body:ar},reviewListQuerySchema:{query:Qs}};var de=Ys.Router();de.get("/medicine/:medicineId",y(oe.getMedicineReviews),ae.getMedicineReviews);de.post("/",P({roles:[l.CUSTOMER],requireVerifiedEmail:!0}),y(oe.createReview),ae.createReview);de.get("/my-reviews",P({roles:[l.CUSTOMER],requireVerifiedEmail:!0}),y(oe.getMyReviews),ae.getMyReviews);de.put("/:id",P({roles:[l.CUSTOMER],requireVerifiedEmail:!0}),y(oe.updateReview),ae.updateReview);de.patch("/:id",P({roles:[l.CUSTOMER],requireVerifiedEmail:!0}),y(oe.updateReview),ae.updateReview);de.delete("/:id",P({roles:[l.CUSTOMER],requireVerifiedEmail:!0}),y(oe.deleteReview),ae.deleteReview);var or=de;import ur from"express";import H from"http-status";import N from"http-status";import{fromNodeHeaders as Ws}from"better-auth/node";var dr={id:!0,name:!0,email:!0,emailVerified:!0,phone:!0,image:!0,role:!0,isBanned:!0,isActive:!0,isDeleted:!0,deletedAt:!0,createdAt:!0,updatedAt:!0},Be={id:!0,name:!0,email:!0,emailVerified:!0,phone:!0,image:!0,role:!0,isBanned:!0,isActive:!0,isDeleted:!0,deletedAt:!0,createdAt:!0,updatedAt:!0},zs=new Set(["createdAt","updatedAt","name","email","role"]),Q=e=>{if(!e)throw new s(N.BAD_REQUEST,"User id is required")},Le=e=>{if(typeof e=="boolean")return e;if(e==="true")return!0;if(e==="false")return!1},$e=async e=>{let t=await o.user.findUnique({where:{id:e},select:{id:!0,role:!0,isDeleted:!0,isBanned:!0,isActive:!0}});if(!t||t.isDeleted)throw new s(N.NOT_FOUND,"User not found");return t},lr=async e=>{await o.session.deleteMany({where:{userId:e}})},Js=async e=>{Q(e);let t=await o.user.findFirst({where:{id:e,isDeleted:!1},select:dr});if(!t)throw new s(N.NOT_FOUND,"User not found");return t},Zs=async(e,t)=>{Q(e),await $e(e);let r={};if(t.name!==void 0){let n=t.name.trim();if(!n)throw new s(N.BAD_REQUEST,"Name cannot be empty");r.name=n}if(t.phone!==void 0&&(r.phone=t.phone===null?null:t.phone.trim()),t.image!==void 0&&(r.image=t.image),Object.keys(r).length===0)throw new s(N.BAD_REQUEST,"No valid fields provided for update");return await o.user.update({where:{id:e},data:r,select:dr})},Xs=async e=>{let t=g.parsePagination(e),r=g.getSingleValue(e.role),i=g.getSingleValue(e.searchTerm)?.trim(),n=Le(e.isBanned),a=Le(e.isActive),d=Le(e.emailVerified),c=Le(e.includeDeleted)??!1,m=typeof t.sortBy=="string"&&zs.has(t.sortBy)?t.sortBy:"createdAt",p={...c?{}:{isDeleted:!1}};if(r){if(!re.includes(r))throw new s(N.BAD_REQUEST,`Invalid role. Allowed roles: ${re.join(", ")}`);p.role=r}n!==void 0&&(p.isBanned=n),a!==void 0&&(p.isActive=a),d!==void 0&&(p.emailVerified=d),i&&(p.OR=[{name:{contains:i,mode:"insensitive"}},{email:{contains:i,mode:"insensitive"}},{phone:{contains:i,mode:"insensitive"}}]);let[A,U]=await o.$transaction([o.user.findMany({where:p,skip:t.skip,take:t.limit,orderBy:{[m]:t.sortOrder},select:Be}),o.user.count({where:p})]);return{meta:{page:t.page,limit:t.limit,total:U,totalPages:Math.ceil(U/t.limit)},data:A}},en=async e=>{Q(e);let t=await o.user.findUnique({where:{id:e},select:Be});if(!t||t.isDeleted)throw new s(N.NOT_FOUND,"User not found");return t},tn=async({targetUserId:e,currentAdminId:t,payload:r})=>{if(Q(e),Q(t),e===t)throw new s(N.FORBIDDEN,"You cannot update your own account status");await $e(e);let i={};if(r.isBanned!==void 0&&(i.isBanned=r.isBanned),r.isActive!==void 0&&(i.isActive=r.isActive),Object.keys(i).length===0)throw new s(N.BAD_REQUEST,"At least one status field is required: isBanned or isActive");let n=await o.user.update({where:{id:e},data:i,select:Be});return(r.isBanned!==void 0||r.isActive!==void 0)&&await lr(e),n},rn=async(e,t,r)=>{if(Q(e),Q(r),e===r)throw new s(N.FORBIDDEN,"You cannot change your own role");if(!re.includes(t))throw new s(N.BAD_REQUEST,`Invalid role. Allowed roles: ${re.join(", ")}`);await $e(e);let i=await o.user.update({where:{id:e},data:{role:t},select:Be});return await lr(e),i},sn=async(e,t,r={})=>{if(Q(e),Q(t),e===t)throw new s(N.FORBIDDEN,"You cannot delete your own account");let i=await $e(e);if(r.hardDelete){let[n,a,d]=await o.$transaction([o.medicine.count({where:{sellerId:e}}),o.order.count({where:{customerId:e}}),o.review.count({where:{customerId:e}})]);if(n>0||a>0||d>0)throw new s(N.CONFLICT,"User cannot be permanently deleted because related medicines, orders, or reviews exist");return await o.user.delete({where:{id:e}}),null}if(i.isDeleted)throw new s(N.BAD_REQUEST,"User is already deleted");return await o.$transaction([o.user.update({where:{id:e},data:{isDeleted:!0,isActive:!1,isBanned:!0,deletedAt:new Date}}),o.session.deleteMany({where:{userId:e}})]),null},nn=async e=>{let{headers:t}=await W.api.signOut({headers:Ws(e),returnHeaders:!0});return{setCookies:typeof t.getSetCookie=="function"?t.getSetCookie():t.get("set-cookie")?[t.get("set-cookie")]:[]}},G={getMyProfile:Js,updateMyProfile:Zs,getAllUsers:Xs,getUserById:en,updateUserStatus:tn,changeUserRole:rn,deleteUser:sn,logout:nn};var Ve=(e,t)=>{let r=g.getSingleValue(e);if(!r)throw new s(H.BAD_REQUEST,`${t} is required`);return r},an=R(async(e,t)=>{let r=await G.getMyProfile(e.user.id);T(t,{success:!0,statusCode:H.OK,message:"Profile fetched successfully",data:r})}),on=R(async(e,t)=>{let r=await G.updateMyProfile(e.user.id,e.body);T(t,{success:!0,statusCode:H.OK,message:"Profile updated successfully",data:r})}),dn=R(async(e,t)=>{let r=await G.getAllUsers(e.query);T(t,{success:!0,statusCode:H.OK,message:"Users fetched successfully",meta:r.meta,data:r.data})}),ln=R(async(e,t)=>{let r=Ve(e.params.id,"User id"),i=await G.getUserById(r);T(t,{success:!0,statusCode:H.OK,message:"User fetched successfully",data:i})}),un=R(async(e,t)=>{let r=Ve(e.params.id,"User id"),i=await G.updateUserStatus({targetUserId:r,currentAdminId:e.user.id,payload:e.body});T(t,{success:!0,statusCode:H.OK,message:"User status updated successfully",data:i})}),cn=R(async(e,t)=>{let r=Ve(e.params.id,"User id"),i=await G.changeUserRole(r,e.body.role,e.user.id);T(t,{success:!0,statusCode:H.OK,message:"User role changed successfully",data:i})}),mn=R(async(e,t)=>{let r=Ve(e.params.id,"User id"),n=g.getSingleValue(e.query.hardDelete)==="true";await G.deleteUser(r,e.user.id,{hardDelete:n}),T(t,{success:!0,statusCode:H.OK,message:n?"User permanently deleted successfully":"User soft deleted successfully",data:null})}),pn=R(async(e,t)=>{let r=await G.logout(e.headers);r.setCookies.length>0&&t.setHeader("Set-Cookie",r.setCookies),T(t,{success:!0,statusCode:H.OK,message:"Logged out successfully",data:null})}),$={getMyProfile:an,updateMyProfile:on,getAllUsers:dn,getUserById:ln,updateUserStatus:un,changeUserRole:cn,deleteUser:mn,logout:pn};import{z as f}from"zod";var qe=f.object({id:f.string().uuid("Invalid user id")}),gn=f.object({name:f.string().trim().min(2,"Name must be at least 2 characters").max(255,"Name cannot exceed 255 characters").optional(),phone:f.union([f.string().trim().min(7,"Phone number is too short").max(20,"Phone number is too long"),f.null()]).optional(),image:f.union([f.string().url("Invalid image URL"),f.null()]).optional()}).refine(e=>Object.keys(e).length>0,{message:"At least one field is required"}),yn=f.object({page:f.coerce.number().int().min(1).optional(),limit:f.coerce.number().int().min(1).max(100).optional(),sortBy:f.enum(["createdAt","updatedAt","name","email","role"]).optional(),sortOrder:f.enum(["asc","desc"]).optional(),role:f.enum([l.CUSTOMER,l.SELLER,l.ADMIN]).optional(),isBanned:f.union([f.literal("true"),f.literal("false"),f.boolean()]).optional(),isActive:f.union([f.literal("true"),f.literal("false"),f.boolean()]).optional(),emailVerified:f.union([f.literal("true"),f.literal("false"),f.boolean()]).optional(),includeDeleted:f.union([f.literal("true"),f.literal("false"),f.boolean()]).optional(),searchTerm:f.string().trim().min(1).max(100).optional()}),fn=f.object({isBanned:f.boolean().optional(),isActive:f.boolean().optional()}).refine(e=>e.isBanned!==void 0||e.isActive!==void 0,{message:"At least one status field is required"}),An=f.object({role:f.enum([l.CUSTOMER,l.SELLER,l.ADMIN],{error:"Role must be CUSTOMER, SELLER, or ADMIN"})}),Pn=f.object({hardDelete:f.union([f.literal("true"),f.literal("false"),f.boolean()]).optional()}),Y={getMyProfile:{},updateMyProfile:{body:gn},getAllUsers:{query:yn},getUserById:{params:qe},updateUserStatus:{params:qe,body:fn},changeUserRole:{params:qe,body:An},deleteUser:{params:qe,query:Pn}};var ye=ur.Router();ye.get("/me",P({roles:[l.CUSTOMER,l.SELLER,l.ADMIN]}),$.getMyProfile);ye.patch("/me",P({roles:[l.CUSTOMER,l.SELLER,l.ADMIN]}),y(Y.updateMyProfile),$.updateMyProfile);ye.put("/profile",P({roles:[l.CUSTOMER,l.SELLER,l.ADMIN]}),y(Y.updateMyProfile),$.updateMyProfile);ye.patch("/profile",P({roles:[l.CUSTOMER,l.SELLER,l.ADMIN]}),y(Y.updateMyProfile),$.updateMyProfile);ye.post("/logout",P({roles:[l.CUSTOMER,l.SELLER,l.ADMIN]}),$.logout);var fe=ur.Router();fe.get("/",P({roles:[l.ADMIN]}),y(Y.getAllUsers),$.getAllUsers);fe.get("/:id",P({roles:[l.ADMIN]}),y(Y.getUserById),$.getUserById);fe.patch("/:id/status",P({roles:[l.ADMIN]}),y(Y.updateUserStatus),$.updateUserStatus);fe.patch("/:id/role",P({roles:[l.ADMIN]}),y(Y.changeUserRole),$.changeUserRole);fe.delete("/:id",P({roles:[l.ADMIN]}),y(Y.deleteUser),$.deleteUser);var cr=ye,mr=fe;var pr=En(),Rn=[{path:"/users",route:cr},{path:"/categories",route:_t},{path:"/admin/categories",route:Ft},{path:"/reviews",route:or},{path:"/medicines",route:Kt},{path:"/seller/medicines",route:Qt},{path:"/admin/medicines",route:Gt},{path:"/orders",route:Jt},{path:"/seller/orders",route:Zt},{path:"/admin/orders",route:Xt},{path:"/admin/users",route:mr}];Rn.forEach(e=>pr.use(e.path,e.route));var gr=pr;var te=yr();te.use(yr.json());te.use(On({origin:E.FRONTEND_URL,credentials:!0,methods:["GET","POST","PUT","DELETE","PATCH","OPTIONS"],allowedHeaders:["Content-Type","Authorization","x-workspace-id","Cookie"],exposedHeaders:["Content-Type","Set-Cookie"]}));te.all(/^\/api\/auth(\/.*)?$/,Tn(W));te.use("/api/v1",gr);te.get("/",(e,t)=>{t.send("Hello World To Medi Store")});te.use(At);te.use(Ut);var fr=te;import"dotenv/config";import{fromNodeHeaders as Sn}from"better-auth/node";var dt=async()=>{try{if(await o.user.findFirst({where:{role:l.ADMIN}})){console.log("Admin already exists. Skipping seeding admin.");return}let t=await W.api.signUpEmail({body:{email:E.ADMIN_EMAIL,password:E.ADMIN_PASSWORD,name:E.ADMIN_NAME,role:l.ADMIN,isActive:!0,isDeleted:!1,isBanned:!1},headers:Sn({}),asResponse:!0});if(!t.ok){let a=await t.json().catch(()=>({}));throw new Error(a.message||"Failed to sign up admin")}let i=(await t.json()).user.id;await o.user.update({where:{id:i},data:{emailVerified:!0}});let n=await o.user.findUnique({where:{email:E.ADMIN_EMAIL}});console.log("\u2705 Admin Created Successfully:",n?.email)}catch(e){console.error("\u274C Failed to seed admin:",e);try{E.ADMIN_EMAIL&&(await o.user.delete({where:{email:E.ADMIN_EMAIL}}),console.log("Cleaned up partial admin creation."))}catch{}}};ut.main===module&&dt().catch(e=>{console.error("\u274C seedAdmin error:",e),process.exit(1)}).finally(async()=>{await o.$disconnect()});var je,Ar=!1,Ke=async(e,t,r=!1)=>{if(Ar)return;Ar=!0,console.log(`\u{1F6D1} ${e} triggered, shutting down...`);let i=setTimeout(()=>{console.error("\u274C Forced shutdown due to timeout"),process.exit(1)},1e4);i.unref();try{if(je&&!r){let n=je;typeof n.closeIdleConnections=="function"&&n.closeIdleConnections(),await new Promise((a,d)=>{je.close(c=>c?d(c):a())}),console.log("\u{1F44B} Server closed")}else r&&console.log("\u26A0\uFE0F Skipping graceful server drain due to unstable process state.");await o.$disconnect(),console.log("\u{1F5C3}\uFE0F Database disconnected successfully"),clearTimeout(i),process.exit(t)}catch(n){clearTimeout(i),console.error("\u274C Error during shutdown sequence:",n),process.exit(1)}};process.on("uncaughtException",e=>{console.error("\u{1F608} Uncaught Exception detected:",e),Ke("uncaughtException",1,!0)});process.on("unhandledRejection",e=>{console.error("\u{1F608} Unhandled Rejection detected:",e),Ke("unhandledRejection",1,!0)});process.on("SIGTERM",()=>{Ke("SIGTERM",0)});process.on("SIGINT",()=>{Ke("SIGINT",0)});async function wn(){try{await dt(),await o.$connect(),console.log("\u{1F5C3}\uFE0F Database connected successfully"),je=fr.listen(E.PORT,()=>{console.log(`\u{1F680} Server is listening on port ${E.PORT}`)})}catch(e){console.error("\u274C Failed to start server:",e),await o.$disconnect().catch(()=>{}),process.exit(1)}}wn();
+//! Unique constraint failed
+//! Not found related errors
+//! DB authentication errors
+//! Access denied errors
+//! Billing / plan related
+//! Timeout / upstream DB issues
+//! Rate limit exceeded
+//! Payload too large
+//! Connection / infrastructure errors
+//! 404 handler
+//! Global error handler
+//# sourceMappingURL=index.mjs.map

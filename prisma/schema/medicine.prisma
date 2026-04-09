@@ -1,0 +1,52 @@
+model Medicine {
+  id           String  @id @default(uuid())
+  name         String
+  slug         String
+  description  String?
+  price        Decimal @db.Decimal(10, 2)
+  stock        Int
+  manufacturer String
+
+  imageUrl String?
+
+  isActive  Boolean   @default(true)
+  isDeleted Boolean   @default(false)
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+
+  sellerId String
+  seller   User   @relation("SellerMedicines", fields: [sellerId], references: [id], onDelete: Restrict)
+
+  reviews        Review[]
+  orderItems     OrderItem[]
+  medicineImages MedicineImage[]
+
+  @@unique([sellerId, slug])
+  @@index([sellerId])
+  @@index([categoryId])
+  @@index([slug])
+  @@index([isActive])
+  @@index([isDeleted])
+  @@index([createdAt])
+  @@index([sellerId, isDeleted])
+  @@index([categoryId, isDeleted, isActive])
+  @@map("medicines")
+}
+
+model MedicineImage {
+  id         String   @id @default(uuid())
+  medicineId String
+  url        String
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  medicine Medicine @relation(fields: [medicineId], references: [id], onDelete: Cascade)
+
+  @@index([medicineId, sortOrder])
+  @@map("medicine_images")
+}

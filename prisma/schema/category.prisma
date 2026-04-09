@@ -1,0 +1,20 @@
+model Category {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  slug        String    @unique
+  description String?
+  imageUrl    String?
+  icon        String?
+  isDeleted   Boolean   @default(false)
+  deletedAt   DateTime?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  medicines   Medicine[]
+
+  @@index([isActive])
+  @@index([isDeleted])
+  @@index([createdAt])
+  @@map("categories")
+}
