@@ -9,6 +9,8 @@ import notFound from "./app/middleware/NotFound";
 import globalErrorHandler from "./app/middleware/globalErrorHandler";
 import router from "./app/routes";
 
+import { isOriginAllowed } from "./app/config/origins";
+
 const app: Application = express();
 
 app.set("trust proxy", true);
@@ -16,11 +18,21 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: [envVars.FRONTEND_URL, "http://localhost:3000"],
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like mobile apps or curl) 
+      // ONLY if not in strict production mode, or handle accordingly.
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      if (isOriginAllowed(origin)) {
+        callback(null, true);
+      } else {
+        console.warn(`[CORS] Rejected origin: ${origin}`);
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
-    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
-    exposedHeaders: ["Content-Type", "Set-Cookie"],
   })
 );
 
