@@ -20,7 +20,7 @@ export const normalizeOrigin = (url: string | undefined): string | null => {
  * Derives a clean list of allowed origins from environment configuration.
  * Supports comma-separated FRONTEND_URL values.
  */
-export const getWhitelistedOrigins = (): string[] => {
+export const getAllowedOrigins = (): string[] => {
   const rawUrl = envVars.FRONTEND_URL || "";
   
   // Use a sensible default for local dev if FRONTEND_URL is missing
@@ -45,7 +45,7 @@ export const getWhitelistedOrigins = (): string[] => {
 /**
  * Pre-calculated whitelist for application use.
  */
-export const whitelistedOrigins = getWhitelistedOrigins();
+export const allowedOrigins = getAllowedOrigins();
 
 /**
  * Validates if a request origin is permitted.
@@ -54,12 +54,12 @@ export const isOriginAllowed = (origin: string | undefined): boolean => {
   if (!origin) return false;
   const normalized = normalizeOrigin(origin);
   if (!normalized) return false;
-  return whitelistedOrigins.includes(normalized);
+  return allowedOrigins.includes(normalized);
 };
 
 /**
  * Returns the primary frontend URL for absolute link generation (e.g. emails).
  */
 export const getPrimaryFrontendOrigin = (): string => {
-  return whitelistedOrigins[0];
+  return allowedOrigins[0];
 };

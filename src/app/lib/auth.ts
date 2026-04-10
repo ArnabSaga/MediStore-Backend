@@ -19,8 +19,8 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const trustedOrigins = getAllowedOrigins(envVars.FRONTEND_URL);
-const frontendBase = getPrimaryFrontendOrigin(envVars.FRONTEND_URL);
+const trustedOrigins = getAllowedOrigins();
+const frontendBase = getPrimaryFrontendOrigin();
 
 console.log("Better Auth config:", {
   NODE_ENV: envVars.NODE_ENV,
