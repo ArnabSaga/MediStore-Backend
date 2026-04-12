@@ -155,23 +155,7 @@ const getMedicineOwnerInclude = () => ({
   },
 });
 
-const parseBoolean = (value: unknown): boolean | undefined => {
-  if (typeof value === "boolean") return value;
 
-  const singleValue = queryHelper.getSingleValue(value);
-  if (singleValue === "true") return true;
-  if (singleValue === "false") return false;
-
-  return undefined;
-};
-
-const parseNumber = (value: unknown): number | undefined => {
-  const singleValue = queryHelper.getSingleValue(value);
-  if (singleValue === undefined) return undefined;
-
-  const parsed = Number(singleValue);
-  return Number.isNaN(parsed) ? undefined : parsed;
-};
 
 const buildMedicineStats = (ratings: Array<{ rating: number }>) => {
   const totalReviews = ratings.length;
@@ -389,14 +373,14 @@ const createMedicine = async (payload: TCreateMedicinePayload) => {
 const getAllMedicines = async (query: TMedicineQuery) => {
   const pagination = queryHelper.parsePagination(query);
 
-  const categoryId = queryHelper.getSingleValue(query.categoryId);
-  const sellerId = queryHelper.getSingleValue(query.sellerId);
-  const search = queryHelper.getSingleValue(query.search)?.trim();
-  const manufacturer = queryHelper.getSingleValue(query.manufacturer)?.trim();
-  const isInStock = parseBoolean(query.isInStock);
+  const categoryId = queryHelper.getSingleValue(query.categoryId)?.toString();
+  const sellerId = queryHelper.getSingleValue(query.sellerId)?.toString();
+  const search = queryHelper.getSingleValue(query.search)?.toString().trim();
+  const manufacturer = queryHelper.getSingleValue(query.manufacturer)?.toString().trim();
+  const isInStock = queryHelper.parseBoolean(query.isInStock);
 
-  const minPrice = parseNumber(query.minPrice);
-  const maxPrice = parseNumber(query.maxPrice);
+  const minPrice = queryHelper.parseNumber(query.minPrice, { min: 0 });
+  const maxPrice = queryHelper.parseNumber(query.maxPrice, { min: 0 });
 
   const sortBy = ALLOWED_MEDICINE_SORT_FIELDS.has(pagination.sortBy)
     ? pagination.sortBy
@@ -507,15 +491,15 @@ const getSellerMedicines = async (sellerId: string, query: TMedicineQuery) => {
 
   const pagination = queryHelper.parsePagination(query);
 
-  const includeInactive = parseBoolean(query.includeInactive) ?? false;
-  const includeDeleted = parseBoolean(query.includeDeleted) ?? false;
-  const isActive = parseBoolean(query.isActive);
-  const categoryId = queryHelper.getSingleValue(query.categoryId);
-  const search = queryHelper.getSingleValue(query.search)?.trim();
-  const manufacturer = queryHelper.getSingleValue(query.manufacturer)?.trim();
+  const includeInactive = queryHelper.parseBoolean(query.includeInactive, { fallback: false });
+  const includeDeleted = queryHelper.parseBoolean(query.includeDeleted, { fallback: false });
+  const isActive = queryHelper.parseBoolean(query.isActive);
+  const categoryId = queryHelper.getSingleValue(query.categoryId)?.toString();
+  const search = queryHelper.getSingleValue(query.search)?.toString().trim();
+  const manufacturer = queryHelper.getSingleValue(query.manufacturer)?.toString().trim();
 
-  const minPrice = parseNumber(query.minPrice);
-  const maxPrice = parseNumber(query.maxPrice);
+  const minPrice = queryHelper.parseNumber(query.minPrice, { min: 0 });
+  const maxPrice = queryHelper.parseNumber(query.maxPrice, { min: 0 });
 
   const sortBy = ALLOWED_MEDICINE_SORT_FIELDS.has(pagination.sortBy)
     ? pagination.sortBy

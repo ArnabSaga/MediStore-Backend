@@ -7,12 +7,12 @@ import { queryHelper } from "../../utils/queryHelper";
 import { sendResponse } from "../../utils/sendResponse";
 import { UserService } from "./user.service";
 
-const getRequiredParam = (value: string | string[] | undefined, fieldName: string) => {
+const getRequiredParam = (value: unknown, fieldName: string) => {
   const parsed = queryHelper.getSingleValue(value);
-  if (!parsed) {
+  if (parsed === undefined || parsed === null || parsed === "") {
     throw new AppError(status.BAD_REQUEST, `${fieldName} is required`);
   }
-  return parsed;
+  return String(parsed);
 };
 
 const getMyProfile = catchAsync(async (req: Request, res: Response) => {

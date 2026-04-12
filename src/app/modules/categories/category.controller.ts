@@ -10,11 +10,11 @@ import { CategoryService } from "./category.service";
 const getRequiredParam = (value: unknown, fieldName: string) => {
   const parsed = queryHelper.getSingleValue(value);
 
-  if (!parsed) {
+  if (parsed === undefined || parsed === null || parsed === "") {
     throw new AppError(status.BAD_REQUEST, `${fieldName} is required`);
   }
 
-  return parsed;
+  return String(parsed);
 };
 
 const createCategory = catchAsync(async (req: Request, res: Response) => {

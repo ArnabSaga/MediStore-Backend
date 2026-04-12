@@ -1,4 +1,4 @@
-type TSortOrder = "asc" | "desc";
+export type TSortOrder = "asc" | "desc";
 
 export type TPaginationResult = {
   page: number;
@@ -10,50 +10,114 @@ export type TPaginationResult = {
 
 export type TRawQuery = Record<string, unknown>;
 
-// Alias for backward compatibility if needed, or just export it
 export type PaginationOptions = TPaginationResult;
 
-const getSingleValue = (value: unknown): string | undefined => {
-  if (typeof value === "string") return value;
-  if (typeof value === "number" || typeof value === "boolean") {
-    return String(value);
+/**
+ * Normalizes input to a single primitive value.
+ * Handles strings, numbers, booleans, and arrays (takes the first element).
+ */
+const getSingleValue = (value: unknown): string | number | boolean | undefined => {
+  if (
+    typeof value === "string" ||
+    typeof value === "number" ||
+    typeof value === "boolean"
+  ) {
+    return value;
   }
+
   if (Array.isArray(value) && value.length > 0) {
     return getSingleValue(value[0]);
   }
+
   return undefined;
 };
 
+type ParseNumberOptions = {
+  min?: number;
+  max?: number;
+  fallback?: number;
+};
+
+/**
+ * Robustly parses a numeric query parameter with optional bounds and fallback.
+ * Returns undefined (or fallback) if value is missing, invalid, or out of bounds.
+ */
+const parseNumber = (value: unknown, options: ParseNumberOptions = {}): number | undefined => {
+  const normalized = getSingleValue(value);
+
+  const hasFallback = Object.prototype.hasOwnProperty.call(options, "fallback");
+  const fallback = options.fallback;
+
+  if (normalized === undefined || normalized === null || normalized === "") {
+    return hasFallback ? fallback : undefined;
+  }
+
+  const parsed = Number(normalized);
+
+  if (!Number.isFinite(parsed)) {
+    return hasFallback ? fallback : undefined;
+  }
+
+  // Bounds checking
+  if (options.min !== undefined && parsed < options.min) {
+    return hasFallback ? fallback : undefined;
+  }
+
+  if (options.max !== undefined && parsed > options.max) {
+    return hasFallback ? fallback : undefined;
+  }
+
+  return parsed;
+};
+
+type ParseBooleanOptions = {
+  fallback?: boolean;
+};
+
+/**
+ * Robustly parses a boolean query parameter.
+ * Returns true for "true"/true, false for "false"/false.
+ * Returns undefined (or fallback) for invalid input.
+ */
+const parseBoolean = (value: unknown, options: ParseBooleanOptions = {}): boolean | undefined => {
+  const normalized = getSingleValue(value);
+
+  const hasFallback = Object.prototype.hasOwnProperty.call(options, "fallback");
+  const fallback = options.fallback;
+
+  if (normalized === true || normalized === "true") return true;
+  if (normalized === false || normalized === "false") return false;
+
+  return hasFallback ? fallback : undefined;
+};
+
+/**
+ * Specialized helper for positive integers, used primarily for pagination.
+ * Unlike parseNumber, this defaults to fallback and floors the result.
+ */
 const toPositiveNumber = (
   value: unknown,
   fallback: number,
   options?: { min?: number; max?: number }
 ): number => {
-  // Use numeric value directly if already parsed, otherwise extract and parse
-  const parsed = typeof value === "number" ? value : Number(getSingleValue(value));
+  const parsed = parseNumber(value, {
+    min: options?.min ?? 1,
+    max: options?.max,
+    // We don't provide a fallback to parseNumber here so we can handle the "invalid -> fallback" logic ourselves
+  });
 
-  if (!Number.isFinite(parsed) || parsed <= 0) {
+  if (parsed === undefined) {
     return fallback;
   }
 
-  let result = Math.floor(parsed);
-
-  if (options?.min !== undefined) {
-    result = Math.max(options.min, result);
-  }
-
-  if (options?.max !== undefined) {
-    result = Math.min(options.max, result);
-  }
-
-  return result;
+  return Math.floor(parsed);
 };
 
 const parsePagination = (query: TRawQuery): TPaginationResult => {
   const page = toPositiveNumber(query.page, 1, { min: 1 });
   const limit = toPositiveNumber(query.limit, 10, { min: 1, max: 100 });
 
-  const sortBy = getSingleValue(query.sortBy) || "createdAt";
+  const sortBy = String(getSingleValue(query.sortBy) || "createdAt");
 
   const rawSortOrder = getSingleValue(query.sortOrder);
   const sortOrder: TSortOrder = rawSortOrder === "asc" ? "asc" : "desc";
@@ -69,5 +133,8 @@ const parsePagination = (query: TRawQuery): TPaginationResult => {
 
 export const queryHelper = {
   getSingleValue,
+  parseNumber,
+  parseBoolean,
   parsePagination,
 };
+
