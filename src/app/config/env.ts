@@ -83,6 +83,31 @@ const loadEnvVariables = (): EnvConfig => {
   const productionGoogleCallbackUrl =
     process.env.GOOGLE_CALLBACK_URL || "https://medi-store-backend.vercel.app/api/auth/callback/google";
 
+  // Strict validation for production
+  if (nodeEnv === "production") {
+    const prodCriticalVars = [
+      { name: "FRONTEND_URL", value: productionFrontendUrl },
+      { name: "BETTER_AUTH_URL", value: productionAuthUrl },
+      { name: "ADMIN_NAME", value: process.env.ADMIN_NAME },
+      { name: "ADMIN_EMAIL", value: process.env.ADMIN_EMAIL },
+      { name: "ADMIN_PASSWORD", value: process.env.ADMIN_PASSWORD },
+      { name: "SMTP_HOST", value: process.env.EMAIL_SENDER_SMTP_HOST },
+      { name: "SMTP_USER", value: process.env.EMAIL_SENDER_SMTP_USER },
+      { name: "SMTP_PASS", value: process.env.EMAIL_SENDER_SMTP_PASS },
+      { name: "SMTP_PORT", value: process.env.EMAIL_SENDER_SMTP_PORT },
+      { name: "SMTP_FROM", value: process.env.EMAIL_SENDER_SMTP_FROM },
+    ];
+
+    prodCriticalVars.forEach((v) => {
+      if (!v.value) {
+        throw new AppError(
+          status.INTERNAL_SERVER_ERROR,
+          `Production Check: Env var {${v.name}} is missing. This is required for secure operation.`
+        );
+      }
+    });
+  }
+
   return {
     NODE_ENV: nodeEnv,
     PORT: process.env.PORT as string,

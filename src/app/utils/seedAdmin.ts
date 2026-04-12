@@ -1,77 +1,33 @@
-import { fromNodeHeaders } from "better-auth/node";
-import "dotenv/config";
+import { hashPassword } from "better-auth/crypto";
 import { envVars } from "../config/env";
 import { UserRole } from "../constants/user";
-import { auth } from "../lib/auth";
 import { prisma } from "../lib/prisma";
 
+/**
+ * Idempotent Admin Seeding Logic.
+ * Reconciles both User and linked Account state to ensure a functional admin.
+ */
 export const seedAdmin = async () => {
+  const { ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_NAME } = envVars;
+
+  // 1. Pre-validation: Fail fast if credentials are missing
+  if (!ADMIN_EMAIL || !ADMIN_PASSWORD || !ADMIN_NAME) {
+    console.error("❌ ADMIN_NAME, ADMIN_EMAIL, or ADMIN_PASSWORD not configured. Skipping seed.");
+    throw new Error("Missing admin credentials in environment variables.");
+  }
+
   try {
-    console.log("🔍 Starting admin seed...");
-    console.log("ADMIN_EMAIL:", envVars.ADMIN_EMAIL);
-    console.log("ADMIN_NAME:", envVars.ADMIN_NAME);
+    console.log(`Starting admin seed for: ${ADMIN_EMAIL}`);
 
-    if (!envVars.ADMIN_EMAIL || !envVars.ADMIN_PASSWORD || !envVars.ADMIN_NAME) {
-      throw new Error(
-        "❌ Admin credentials are not fully configured (ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_NAME). Seeding aborted."
-      );
-    }
+    // 2. Deterministic Password Hashing
+    // We use Better Auth's internal helper to ensure matching format
+    const hashedPassword = await hashPassword(ADMIN_PASSWORD);
 
-    const existingByEmail = await prisma.user.findUnique({
-      where: { email: envVars.ADMIN_EMAIL },
-    });
-
-    if (existingByEmail) {
-      console.log("⚠️ User already exists with admin email:", existingByEmail.email);
-
-      if (existingByEmail.role !== UserRole.ADMIN) {
-        await prisma.user.update({
-          where: { email: envVars.ADMIN_EMAIL },
-          data: {
-            role: UserRole.ADMIN,
-            emailVerified: true,
-            isActive: true,
-            isDeleted: false,
-            isBanned: false,
-            deletedAt: null,
-          },
-        });
-
-        console.log("✅ Existing user promoted to ADMIN:", envVars.ADMIN_EMAIL);
-      }
-
-      return;
-    }
-
-    const response = await auth.api.signUpEmail({
-      body: {
-        email: envVars.ADMIN_EMAIL,
-        password: envVars.ADMIN_PASSWORD,
-        name: envVars.ADMIN_NAME,
-      },
-      headers: fromNodeHeaders({}),
-      asResponse: true,
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error("❌ Better Auth signup failed:", errorData);
-      throw new Error((errorData as { message?: string })?.message || "Failed to sign up admin");
-    }
-
-    const data = (await response.json()) as {
-      user?: { id?: string; email?: string };
-    };
-
-    const userId = data?.user?.id;
-
-    if (!userId) {
-      throw new Error("Admin created without user id");
-    }
-
-    await prisma.user.update({
-      where: { id: userId },
-      data: {
+    // 3. Upsert User (Self-healing reconciliation)
+    const user = await prisma.user.upsert({
+      where: { email: ADMIN_EMAIL },
+      update: {
+        name: ADMIN_NAME,
         role: UserRole.ADMIN,
         emailVerified: true,
         isActive: true,
@@ -79,10 +35,43 @@ export const seedAdmin = async () => {
         isBanned: false,
         deletedAt: null,
       },
+      create: {
+        email: ADMIN_EMAIL,
+        name: ADMIN_NAME,
+        role: UserRole.ADMIN,
+        emailVerified: true,
+        isActive: true,
+      },
     });
 
-    console.log("✅ Admin created successfully:", envVars.ADMIN_EMAIL);
+    console.log(`✅ User state reconciled for: ${user.email}`);
+
+    // 4. Upsert Account Linkage (Credential recovery)
+    // Reconcile the linked account record to ensure login eligibility
+    await prisma.account.upsert({
+      where: {
+        providerId_accountId: {
+          providerId: "credential",
+          accountId: ADMIN_EMAIL,
+        },
+      },
+      update: {
+        password: hashedPassword,
+        userId: user.id,
+      },
+      create: {
+        userId: user.id,
+        providerId: "credential",
+        accountId: ADMIN_EMAIL,
+        password: hashedPassword,
+      },
+    });
+
+    console.log(`✅ Credential account reconciled for: ${ADMIN_EMAIL}`);
+    console.log("🚀 Admin reconciliation complete.");
   } catch (error) {
-    console.error("❌ Failed to seed admin:", error);
+    console.error("❌ Seed failed during reconciliation:", error);
+    throw error; // Propagate to runSeedAdmin.ts for process.exit(1)
   }
 };
+

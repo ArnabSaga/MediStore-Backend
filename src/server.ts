@@ -2,7 +2,7 @@ import { Server } from "http";
 import app from "./app";
 import { envVars } from "./app/config/env";
 import { prisma } from "./app/lib/prisma";
-import { seedAdmin } from "./app/utils/seedAdmin";
+
 
 let server: Server | undefined;
 
@@ -25,6 +25,7 @@ async function main() {
     } catch (dbError) {
       console.error("❌ Database connection failed:", dbError);
     }
+
 
     if (process.env.VERCEL) {
       console.log("🚀 Server running in Vercel Serverless environment");

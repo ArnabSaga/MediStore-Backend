@@ -5,6 +5,7 @@ import nodemailer from "nodemailer";
 import { envVars } from "../config/env";
 import { UserRole } from "../constants/user";
 import { getVerificationEmailHtml } from "./mail-template";
+import { getAllowedOrigins, getPrimaryFrontendOrigin } from "../config/origins";
 import { prisma } from "./prisma";
 
 const transporter = nodemailer.createTransport({
@@ -17,28 +18,8 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-function toOrigin(value?: string | null): string | null {
-  if (!value) return null;
-
-  try {
-    return new URL(value).origin;
-  } catch {
-    return null;
-  }
-}
-
-const trustedOrigins: string[] = Array.from(
-  new Set(
-    [
-      toOrigin(envVars.FRONTEND_URL),
-      "http://localhost:3000",
-      "http://127.0.0.1:3000",
-      "http://[::1]:3000",
-    ].filter((value): value is string => Boolean(value))
-  )
-);
-
-const frontendBase = toOrigin(envVars.FRONTEND_URL) || "http://localhost:3000";
+const trustedOrigins = getAllowedOrigins();
+const frontendBase = getPrimaryFrontendOrigin();
 
 console.log("Better Auth config:", {
   NODE_ENV: envVars.NODE_ENV,
