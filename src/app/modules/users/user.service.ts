@@ -66,12 +66,7 @@ const ensureUserId = (id?: string) => {
   }
 };
 
-const parseBoolean = (value: unknown): boolean | undefined => {
-  if (typeof value === "boolean") return value;
-  if (value === "true") return true;
-  if (value === "false") return false;
-  return undefined;
-};
+
 
 const ensureUserExists = async (id: string) => {
   const user = await prisma.user.findUnique({
@@ -155,12 +150,12 @@ const updateMyProfile = async (userId: string, payload: TUpdateMyProfilePayload)
 const getAllUsers = async (query: TGetAllUsersQuery) => {
   const pagination = queryHelper.parsePagination(query);
 
-  const role = queryHelper.getSingleValue(query.role);
-  const searchTerm = queryHelper.getSingleValue(query.searchTerm)?.trim();
-  const isBanned = parseBoolean(query.isBanned);
-  const isActive = parseBoolean(query.isActive);
-  const emailVerified = parseBoolean(query.emailVerified);
-  const includeDeleted = parseBoolean(query.includeDeleted) ?? false;
+  const role = queryHelper.getSingleValue(query.role)?.toString();
+  const searchTerm = queryHelper.getSingleValue(query.searchTerm)?.toString().trim();
+  const isBanned = queryHelper.parseBoolean(query.isBanned);
+  const isActive = queryHelper.parseBoolean(query.isActive);
+  const emailVerified = queryHelper.parseBoolean(query.emailVerified);
+  const includeDeleted = queryHelper.parseBoolean(query.includeDeleted, { fallback: false });
 
   const sortBy =
     typeof pagination.sortBy === "string" && ALLOWED_SORT_FIELDS.has(pagination.sortBy)

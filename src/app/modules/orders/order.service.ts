@@ -74,15 +74,7 @@ const ORDER_INCLUDE = {
   },
 } satisfies Prisma.OrderInclude;
 
-const parseBoolean = (value: unknown): boolean | undefined => {
-  if (typeof value === "boolean") return value;
 
-  const singleValue = queryHelper.getSingleValue(value);
-  if (singleValue === "true") return true;
-  if (singleValue === "false") return false;
-
-  return undefined;
-};
 
 const buildMeta = (page: number, limit: number, total: number) => ({
   page,
@@ -362,9 +354,9 @@ const getOrderByIdForCustomer = async (id: string, userId: string) => {
 
 const getAllOrders = async (query: TOrderQuery) => {
   const pagination = queryHelper.parsePagination(query);
-  const statusFilter = queryHelper.getSingleValue(query.status);
-  const paymentStatusFilter = queryHelper.getSingleValue(query.paymentStatus);
-  const customerId = queryHelper.getSingleValue(query.customerId);
+  const statusFilter = queryHelper.getSingleValue(query.status)?.toString();
+  const paymentStatusFilter = queryHelper.getSingleValue(query.paymentStatus)?.toString();
+  const customerId = queryHelper.getSingleValue(query.customerId)?.toString();
 
   const sortBy = ALLOWED_ORDER_SORT_FIELDS.has(pagination.sortBy) ? pagination.sortBy : "createdAt";
 

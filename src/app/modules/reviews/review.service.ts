@@ -56,15 +56,7 @@ const buildMeta = (page: number, limit: number, total: number) => ({
   totalPages: Math.ceil(total / limit),
 });
 
-const parseBoolean = (value: unknown): boolean | undefined => {
-  if (typeof value === "boolean") return value;
 
-  const singleValue = queryHelper.getSingleValue(value);
-  if (singleValue === "true") return true;
-  if (singleValue === "false") return false;
-
-  return undefined;
-};
 
 const ensureCustomerExistsAndUsable = async (customerId: string) => {
   const customer = await prisma.user.findUnique({
@@ -248,11 +240,7 @@ const getMedicineReviews = async (medicineId: string, query: TReviewQuery) => {
     ? pagination.sortBy
     : "createdAt";
 
-  const minRatingValue = queryHelper.getSingleValue(query.minRating);
-  const minRating =
-    minRatingValue !== undefined && !Number.isNaN(Number(minRatingValue))
-      ? Number(minRatingValue)
-      : undefined;
+  const minRating = queryHelper.parseNumber(query.minRating, { min: 1, max: 5 });
 
   const where: Prisma.ReviewWhereInput = {
     medicineId,
@@ -310,7 +298,7 @@ const getUserReviews = async (customerId: string, query: TReviewQuery) => {
   await ensureCustomerExistsAndUsable(customerId);
 
   const pagination = queryHelper.parsePagination(query);
-  const includeDeleted = parseBoolean(query.includeDeleted) ?? false;
+  const includeDeleted = queryHelper.parseBoolean(query.includeDeleted, { fallback: false });
 
   const sortBy = ALLOWED_REVIEW_SORT_FIELDS.has(pagination.sortBy)
     ? pagination.sortBy

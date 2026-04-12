@@ -224,7 +224,7 @@ const createCategory = async (payload: TCreateCategoryPayload) => {
 const getAllCategories = async (query: TCategoryQuery) => {
   const pagination = queryHelper.parsePagination(query);
 
-  const searchTerm = queryHelper.getSingleValue(query.searchTerm)?.trim();
+  const searchTerm = queryHelper.getSingleValue(query.searchTerm)?.toString().trim();
   const includeMedicines = queryHelper.getSingleValue(query.includeMedicines) === "true";
 
   const sortBy =
