@@ -15,7 +15,12 @@ export type PaginationOptions = TPaginationResult;
 
 const getSingleValue = (value: unknown): string | undefined => {
   if (typeof value === "string") return value;
-  if (Array.isArray(value) && typeof value[0] === "string") return value[0];
+  if (typeof value === "number" || typeof value === "boolean") {
+    return String(value);
+  }
+  if (Array.isArray(value) && value.length > 0) {
+    return getSingleValue(value[0]);
+  }
   return undefined;
 };
 
@@ -24,21 +29,21 @@ const toPositiveNumber = (
   fallback: number,
   options?: { min?: number; max?: number }
 ): number => {
-  const single = getSingleValue(value);
-  const parsed = Number(single);
+  // Use numeric value directly if already parsed, otherwise extract and parse
+  const parsed = typeof value === "number" ? value : Number(getSingleValue(value));
 
-  if (!single || Number.isNaN(parsed) || parsed <= 0) {
+  if (!Number.isFinite(parsed) || parsed <= 0) {
     return fallback;
   }
 
   let result = Math.floor(parsed);
 
-  if (options?.min !== undefined && result < options.min) {
-    result = options.min;
+  if (options?.min !== undefined) {
+    result = Math.max(options.min, result);
   }
 
-  if (options?.max !== undefined && result > options.max) {
-    result = options.max;
+  if (options?.max !== undefined) {
+    result = Math.min(options.max, result);
   }
 
   return result;
