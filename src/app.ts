@@ -19,8 +19,9 @@ app.use(cookieParser());
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (like mobile apps or curl) 
-      // ONLY if not in strict production mode, or handle accordingly.
+      // Requests without Origin may come from trusted server-to-server clients,
+      // health checks, or same-origin proxy traffic. Authorization is still
+      // enforced by route middleware.
       if (!origin) {
         return callback(null, true);
       }
@@ -52,3 +53,4 @@ app.use(notFound);
 app.use(globalErrorHandler);
 
 export default app;
+
