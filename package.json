@@ -4,14 +4,16 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node dist/server.js",
-    "build": "prisma generate && tsup",
+    "start": "node dist/server.mjs",
+    "build": "pnpm build:vercel",
     "dev": "tsx watch src/server.ts",
     "migrate": "prisma migrate dev",
     "generate": "prisma generate",
     "studio": "prisma studio",
     "seed:admin": "tsx src/app/utils/runSeedAdmin.ts",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "build:vercel": "prisma generate && tsup --config tsup.vercel.config.ts",
+    "build:server": "prisma generate && tsup --config tsup.server.config.ts"
   },
   "keywords": [],
   "author": "ArnabSaga",
