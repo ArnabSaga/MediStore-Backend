@@ -1,29 +1,39 @@
+import "dotenv/config";
+
 import { hashPassword } from "better-auth/crypto";
-import { envVars } from "../config/env";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { PrismaClient } from "../../generated/prisma/client";
 import { UserRole } from "../constants/user";
-import { prisma } from "../lib/prisma";
+
+function getRequiredSeedEnv(name: string): string {
+  const value = process.env[name]?.trim();
+
+  if (!value) {
+    throw new Error(`${name} is required for pnpm seed:admin`);
+  }
+
+  return value;
+}
 
 /**
  * Idempotent Admin Seeding Logic.
  * Reconciles both User and linked Account state to ensure a functional admin.
  */
 export const seedAdmin = async () => {
-  const { ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_NAME } = envVars;
+  const ADMIN_EMAIL = getRequiredSeedEnv("ADMIN_EMAIL");
+  const ADMIN_PASSWORD = getRequiredSeedEnv("ADMIN_PASSWORD");
+  const ADMIN_NAME = getRequiredSeedEnv("ADMIN_NAME");
+  const DATABASE_URL = getRequiredSeedEnv("DATABASE_URL");
 
-  // 1. Pre-validation: Fail fast if credentials are missing
-  if (!ADMIN_EMAIL || !ADMIN_PASSWORD || !ADMIN_NAME) {
-    console.error("❌ ADMIN_NAME, ADMIN_EMAIL, or ADMIN_PASSWORD not configured. Skipping seed.");
-    throw new Error("Missing admin credentials in environment variables.");
-  }
+  const adapter = new PrismaPg({ connectionString: DATABASE_URL });
+  const prisma = new PrismaClient({ adapter });
 
   try {
     console.log(`Starting admin seed for: ${ADMIN_EMAIL}`);
 
-    // 2. Deterministic Password Hashing
-    // We use Better Auth's internal helper to ensure matching format
+    // We use Better Auth's helper to ensure the credential hash format matches login.
     const hashedPassword = await hashPassword(ADMIN_PASSWORD);
 
-    // 3. Upsert User (Self-healing reconciliation)
     const user = await prisma.user.upsert({
       where: { email: ADMIN_EMAIL },
       update: {
@@ -46,8 +56,6 @@ export const seedAdmin = async () => {
 
     console.log(`✅ User state reconciled for: ${user.email}`);
 
-    // 4. Upsert Account Linkage (Credential recovery)
-    // Reconcile the linked account record to ensure login eligibility
     await prisma.account.upsert({
       where: {
         providerId_accountId: {
@@ -71,7 +79,9 @@ export const seedAdmin = async () => {
     console.log("🚀 Admin reconciliation complete.");
   } catch (error) {
     console.error("❌ Seed failed during reconciliation:", error);
-    throw error; // Propagate to runSeedAdmin.ts for process.exit(1)
+    throw error;
+  } finally {
+    await prisma.$disconnect();
   }
 };
 
