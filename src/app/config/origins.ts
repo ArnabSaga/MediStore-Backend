@@ -8,38 +8,32 @@ export const normalizeOrigin = (url: string | undefined): string | null => {
   if (!url) return null;
   try {
     const parsed = new URL(url);
-    // Return only origin (scheme + host + port)
     return parsed.origin;
-  } catch (err) {
+  } catch {
     console.warn(`[CORS] Invalid origin format encountered: "${url}"`);
     return null;
   }
 };
 
 /**
- * Derives a clean list of allowed origins from environment configuration.
- * Supports comma-separated FRONTEND_URL values.
+ * Returns the exact frontend origins allowed to call MediStore auth/API routes.
  */
 export const getAllowedOrigins = (): string[] => {
-  const rawUrl = envVars.FRONTEND_URL || "";
-  
-  // Use a sensible default for local dev if FRONTEND_URL is missing
-  const defaults = ["http://localhost:3000", "http://127.0.0.1:3000"];
-  
-  // Split by comma and filter valid origins
-  const envOrigins = rawUrl
-    .split(",")
-    .map((u) => u.trim())
-    .map((u) => normalizeOrigin(u))
-    .filter((u): u is string => u !== null);
+  const frontendOrigin = normalizeOrigin(envVars.FRONTEND_URL);
 
-  const combined = envOrigins.length > 0 ? envOrigins : defaults;
-
-  if (envOrigins.length === 0 && envVars.NODE_ENV === "production") {
-    console.warn("⚠️ [CORS] No valid frontend origins were found in FRONTEND_URL variable. Falling back to defaults.");
+  if (!frontendOrigin) {
+    throw new Error("FRONTEND_URL must be a valid origin.");
   }
 
-  return [...new Set(combined)]; // Ensure uniqueness
+  const origins = [frontendOrigin];
+
+  const isVercel = process.env.VERCEL === "1" || !!process.env.VERCEL_ENV;
+  if (!isVercel || envVars.NODE_ENV === "development") {
+    origins.push("http://localhost:3000");
+    origins.push("http://127.0.0.1:3000");
+  }
+
+  return [...new Set(origins)];
 };
 
 /**
@@ -58,7 +52,7 @@ export const isOriginAllowed = (origin: string | undefined): boolean => {
 };
 
 /**
- * Returns the primary frontend URL for absolute link generation (e.g. emails).
+ * Returns the canonical frontend URL for absolute links.
  */
 export const getPrimaryFrontendOrigin = (): string => {
   return allowedOrigins[0];
