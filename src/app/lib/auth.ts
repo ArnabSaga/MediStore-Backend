@@ -1,6 +1,5 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { oAuthProxy } from "better-auth/plugins";
 import nodemailer from "nodemailer";
 
 import { envVars } from "../config/env";
@@ -22,22 +21,12 @@ const transporter = nodemailer.createTransport({
 const trustedOrigins = getAllowedOrigins();
 const frontendBase = getPrimaryFrontendOrigin();
 
-console.log("Better Auth config:", {
-  NODE_ENV: envVars.NODE_ENV,
-  BETTER_AUTH_URL: envVars.BETTER_AUTH_URL,
-  FRONTEND_URL: envVars.FRONTEND_URL,
-  trustedOrigins,
-});
-
 export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
 
-  // This must point to the actual backend auth endpoint
   baseURL: envVars.BETTER_AUTH_URL,
-
-  // These are the frontend origins allowed to call auth
   trustedOrigins,
 
   emailAndPassword: {
@@ -52,14 +41,12 @@ export const auth = betterAuth({
     sendVerificationEmail: async ({ user, token }) => {
       const verificationUrl = `${frontendBase}/verify-email?token=${token}`;
 
-      const info = await transporter.sendMail({
+      await transporter.sendMail({
         from: `"MediStore" <${envVars.EMAIL_SENDER.SMTP_FROM}>`,
         to: user.email,
         subject: "Please verify your email",
         html: getVerificationEmailHtml(verificationUrl, user.email),
       });
-
-      console.log("Verification email sent:", info.messageId);
     },
   },
 
@@ -105,8 +92,6 @@ export const auth = betterAuth({
       },
     },
   },
-
-  plugins: [oAuthProxy()],
 
   advanced: {
     useSecureCookies: envVars.NODE_ENV === "production",

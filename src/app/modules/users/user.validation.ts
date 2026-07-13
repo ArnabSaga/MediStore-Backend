@@ -2,7 +2,7 @@ import { z } from "zod";
 import { UserRole } from "../../constants/user";
 
 const userIdParamsSchema = z.object({
-  id: z.string().uuid("Invalid user id"),
+  id: z.string().trim().min(1, "Invalid user id"),
 });
 
 const updateMyProfileBodySchema = z
