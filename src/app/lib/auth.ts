@@ -95,7 +95,7 @@ export const auth = betterAuth({
 
   advanced: {
     useSecureCookies: envVars.NODE_ENV === "production",
-    trustProxy: true,
+    trustedProxyHeaders: true,
     cookies: {
       session_token: {
         name: "mediStore_session",
