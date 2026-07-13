@@ -352,6 +352,19 @@ const getOrderByIdForCustomer = async (id: string, userId: string) => {
   return result;
 };
 
+const getOrderByIdForAdmin = async (id: string) => {
+  const result = await prisma.order.findUnique({
+    where: { id },
+    include: ORDER_INCLUDE,
+  });
+
+  if (!result) {
+    throw new AppError(status.NOT_FOUND, "Order not found");
+  }
+
+  return result;
+};
+
 const getAllOrders = async (query: TOrderQuery) => {
   const pagination = queryHelper.parsePagination(query);
   const statusFilter = queryHelper.getSingleValue(query.status)?.toString();
@@ -634,6 +647,7 @@ export const OrderService = {
   createOrder,
   getUserOrders,
   getOrderByIdForCustomer,
+  getOrderByIdForAdmin,
   getAllOrders,
   getSellerOrders,
   updateOrderStatus,

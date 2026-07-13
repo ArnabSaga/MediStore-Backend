@@ -20,7 +20,6 @@ interface EnvConfig {
   };
   GOOGLE_CLIENT_ID: string;
   GOOGLE_CLIENT_SECRET: string;
-  GOOGLE_CALLBACK_URL: string;
   CLOUDINARY: {
     CLOUDINARY_CLOUD_NAME: string;
     CLOUDINARY_API_KEY: string;
@@ -29,10 +28,20 @@ interface EnvConfig {
     MEDICINE_FOLDER: string;
     CATEGORY_FOLDER: string;
   };
-  ADMIN_NAME: string;
-  ADMIN_EMAIL: string;
-  ADMIN_PASSWORD: string;
 }
+
+const requireEnv = (name: string): string => {
+  const value = process.env[name]?.trim();
+
+  if (!value) {
+    throw new AppError(
+      status.INTERNAL_SERVER_ERROR,
+      `Critical env var {${name}} is not set.`
+    );
+  }
+
+  return value;
+};
 
 const loadEnvVariables = (): EnvConfig => {
   const isVercel = process.env.VERCEL === "1" || !!process.env.VERCEL_ENV;
@@ -41,71 +50,33 @@ const loadEnvVariables = (): EnvConfig => {
       ? "production"
       : "development";
 
-  const isDev = !isVercel && nodeEnv !== "production";
+  const isLocalDev = !isVercel;
 
-  const criticalVars = ["DATABASE_URL", "BETTER_AUTH_SECRET"];
-  criticalVars.forEach((variable) => {
-    if (!process.env[variable]) {
-      throw new AppError(
-        status.INTERNAL_SERVER_ERROR,
-        `Critical env var {${variable}} is not set.`
-      );
-    }
-  });
+  const localFrontendUrl = "http://localhost:3000";
+  const localAuthUrl = "http://localhost:3000/api/auth";
 
-  [
-    "EMAIL_SENDER_SMTP_USER",
-    "EMAIL_SENDER_SMTP_PASS",
+  const productionRequiredVars = [
+    "DATABASE_URL",
+    "BETTER_AUTH_SECRET",
+    "BETTER_AUTH_URL",
+    "FRONTEND_URL",
     "EMAIL_SENDER_SMTP_HOST",
     "EMAIL_SENDER_SMTP_PORT",
+    "EMAIL_SENDER_SMTP_USER",
+    "EMAIL_SENDER_SMTP_PASS",
     "EMAIL_SENDER_SMTP_FROM",
     "GOOGLE_CLIENT_ID",
     "GOOGLE_CLIENT_SECRET",
     "CLOUDINARY_CLOUD_NAME",
     "CLOUDINARY_API_KEY",
     "CLOUDINARY_API_SECRET",
-    "ADMIN_NAME",
-    "ADMIN_EMAIL",
-    "ADMIN_PASSWORD",
-  ].forEach((v) => {
-    if (!process.env[v]) {
-      console.warn(`[Config] ${v} is not set — related features may fail.`);
-    }
-  });
+  ];
 
-  const localFrontendUrl = "http://localhost:3000";
-  const localAuthUrl = "http://localhost:5000/api/auth";
-  const localGoogleCallbackUrl = "http://localhost:5000/api/auth/callback/google";
-
-  const productionFrontendUrl = process.env.FRONTEND_URL || process.env.APP_URL || "";
-  const productionAuthUrl =
-    process.env.BETTER_AUTH_URL || "https://medi-store-backend.vercel.app/api/auth";
-  const productionGoogleCallbackUrl =
-    process.env.GOOGLE_CALLBACK_URL || "https://medi-store-backend.vercel.app/api/auth/callback/google";
-
-  // Strict validation for production
-  if (nodeEnv === "production") {
-    const prodCriticalVars = [
-      { name: "FRONTEND_URL", value: productionFrontendUrl },
-      { name: "BETTER_AUTH_URL", value: productionAuthUrl },
-      { name: "ADMIN_NAME", value: process.env.ADMIN_NAME },
-      { name: "ADMIN_EMAIL", value: process.env.ADMIN_EMAIL },
-      { name: "ADMIN_PASSWORD", value: process.env.ADMIN_PASSWORD },
-      { name: "SMTP_HOST", value: process.env.EMAIL_SENDER_SMTP_HOST },
-      { name: "SMTP_USER", value: process.env.EMAIL_SENDER_SMTP_USER },
-      { name: "SMTP_PASS", value: process.env.EMAIL_SENDER_SMTP_PASS },
-      { name: "SMTP_PORT", value: process.env.EMAIL_SENDER_SMTP_PORT },
-      { name: "SMTP_FROM", value: process.env.EMAIL_SENDER_SMTP_FROM },
-    ];
-
-    prodCriticalVars.forEach((v) => {
-      if (!v.value) {
-        throw new AppError(
-          status.INTERNAL_SERVER_ERROR,
-          `Production Check: Env var {${v.name}} is missing. This is required for secure operation.`
-        );
-      }
-    });
+  if (!isLocalDev) {
+    productionRequiredVars.forEach(requireEnv);
+  } else {
+    requireEnv("DATABASE_URL");
+    requireEnv("BETTER_AUTH_SECRET");
   }
 
   return {
@@ -113,8 +84,16 @@ const loadEnvVariables = (): EnvConfig => {
     PORT: process.env.PORT as string,
     DATABASE_URL: process.env.DATABASE_URL as string,
     BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET as string,
-    BETTER_AUTH_URL: isDev ? localAuthUrl : productionAuthUrl,
-    FRONTEND_URL: isDev ? localFrontendUrl : productionFrontendUrl,
+    BETTER_AUTH_URL: isLocalDev
+      ? (process.env.BETTER_AUTH_URL?.includes("localhost") || process.env.BETTER_AUTH_URL?.includes("127.0.0.1")
+          ? process.env.BETTER_AUTH_URL
+          : localAuthUrl)
+      : process.env.BETTER_AUTH_URL as string,
+    FRONTEND_URL: isLocalDev
+      ? (process.env.FRONTEND_URL?.includes("localhost") || process.env.FRONTEND_URL?.includes("127.0.0.1")
+          ? process.env.FRONTEND_URL
+          : localFrontendUrl)
+      : process.env.FRONTEND_URL as string,
     EMAIL_SENDER: {
       SMTP_HOST: process.env.EMAIL_SENDER_SMTP_HOST as string,
       SMTP_PORT: process.env.EMAIL_SENDER_SMTP_PORT as string,
@@ -122,9 +101,8 @@ const loadEnvVariables = (): EnvConfig => {
       SMTP_PASS: process.env.EMAIL_SENDER_SMTP_PASS as string,
       SMTP_FROM: process.env.EMAIL_SENDER_SMTP_FROM as string,
     },
-    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID as string,
-    GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET as string,
-    GOOGLE_CALLBACK_URL: isDev ? localGoogleCallbackUrl : productionGoogleCallbackUrl,
+    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID || "",
+    GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET || "",
     CLOUDINARY: {
       CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME as string,
       CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY as string,
@@ -133,10 +111,8 @@ const loadEnvVariables = (): EnvConfig => {
       MEDICINE_FOLDER: process.env.MEDICINE_FOLDER as string,
       CATEGORY_FOLDER: process.env.CATEGORY_FOLDER as string,
     },
-    ADMIN_NAME: process.env.ADMIN_NAME as string,
-    ADMIN_EMAIL: process.env.ADMIN_EMAIL as string,
-    ADMIN_PASSWORD: process.env.ADMIN_PASSWORD as string,
   };
 };
 
 export const envVars = loadEnvVariables();
+

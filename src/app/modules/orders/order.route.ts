@@ -72,6 +72,13 @@ adminOrderRouter.get(
   OrderController.getAllOrders
 );
 
+adminOrderRouter.get(
+  "/:id",
+  auth({ roles: [UserRole.ADMIN], requireVerifiedEmail: true }),
+  validateRequest(OrderValidation.getOrderById),
+  OrderController.getAdminOrderById
+);
+
 adminOrderRouter.patch(
   "/:id",
   auth({ roles: [UserRole.ADMIN], requireVerifiedEmail: true }),

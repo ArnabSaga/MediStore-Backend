@@ -61,6 +61,19 @@ const getOrderById = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const getAdminOrderById = catchAsync(async (req: Request, res: Response) => {
+  const id = getRequiredParam(req.params.id, "Order id");
+
+  const result = await OrderService.getOrderByIdForAdmin(id);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: status.OK,
+    message: "Order fetched successfully",
+    data: result,
+  });
+});
+
 const cancelOrder = catchAsync(async (req: Request, res: Response) => {
   const id = getRequiredParam(req.params.id, "Order id");
 
@@ -127,6 +140,7 @@ export const OrderController = {
   createOrder,
   getUserOrders,
   getOrderById,
+  getAdminOrderById,
   cancelOrder,
   getSellerOrders,
   updateOrderStatus,
