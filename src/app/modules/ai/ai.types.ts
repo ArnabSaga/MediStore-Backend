@@ -111,12 +111,103 @@ export interface AiCatalogCompareResult {
   missingIds: string[];
 }
 
+export interface AiCartRequestItem {
+  medicineId: string;
+  quantity: number;
+}
+
+export interface AiCartInput {
+  items: AiCartRequestItem[];
+}
+
+export interface AiCartProduct {
+  id: string;
+  name: string;
+  slug: string;
+  manufacturer: string;
+  price: number;
+  stock: number;
+  imageUrl: string | null;
+  seller: AiMedicineSeller;
+}
+
+export interface AiCartContextItem extends AiCartProduct {
+  quantity: number;
+}
+
+export interface AiCartContext {
+  items: AiCartContextItem[];
+  sellerIds: string[];
+  singleSeller: boolean;
+  fingerprint: string;
+}
+
+export type AiCartAction = "SET_QTY" | "CLEAR";
+
+export interface AiCartProposalItem {
+  medicineId: string;
+  name: string;
+  slug: string;
+  manufacturer: string;
+  price: number;
+  stock: number;
+  imageUrl: string | null;
+  seller: AiMedicineSeller;
+  previousQuantity: number;
+  quantity: number;
+}
+
+export interface AiCartProposal {
+  id: string;
+  action: AiCartAction;
+  items: AiCartProposalItem[];
+  cartFingerprint: string;
+}
+
+export type AiCartConflictCode =
+  | "CART_UNAVAILABLE"
+  | "CART_LIMIT"
+  | "INVALID_ACTION"
+  | "INVALID_ITEM"
+  | "PRODUCT_UNAVAILABLE"
+  | "INSUFFICIENT_STOCK"
+  | "SINGLE_SELLER"
+  | "NO_CHANGE";
+
+export interface AiCartConflict {
+  code: AiCartConflictCode;
+  message: string;
+}
+
+export interface AiCartSummaryItem {
+  medicineId: string;
+  name: string;
+  slug: string;
+  quantity: number;
+  stock: number;
+  inStock: boolean;
+  seller: AiMedicineSeller;
+}
+
+export interface AiCartSummary {
+  items: AiCartSummaryItem[];
+  totalItems: number;
+  singleSeller: boolean;
+}
+
+export interface AiCartResult {
+  proposal?: AiCartProposal;
+  conflict?: AiCartConflict;
+  summary?: AiCartSummary;
+}
+
 export interface MedicineCatalog {
   search(input: AiCatalogSearchInput): Promise<AiMedicineCard[]>;
   findDetails(medicineId: string): Promise<AiMedicineDetails | null>;
   checkAvailability(medicineIds: string[]): Promise<AiCatalogAvailabilityResult>;
   compare(medicineIds: string[]): Promise<AiCatalogCompareResult>;
   hydrate(medicineIds: string[]): Promise<AiMedicineCard[]>;
+  findCartItems(medicineIds: string[]): Promise<AiCartProduct[]>;
 }
 
 export interface AiToolExecutionResult {
@@ -127,11 +218,13 @@ export interface AiToolExecutionResult {
 export interface AiShoppingChatInput {
   message: string;
   history?: AiHistoryMessage[];
+  cart?: AiCartInput;
 }
 
 export interface AiShoppingChatResult {
   answer: string;
   products: AiMedicineCard[];
+  cart?: AiCartResult;
   meta: {
     model: string;
     toolCalls: number;

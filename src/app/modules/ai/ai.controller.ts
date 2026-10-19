@@ -14,6 +14,7 @@ export const createAiShoppingChatController = (
     const result = await service.chat({
       message: body.message,
       history: body.history,
+      cart: body.cart,
     });
 
     sendResponse(res, {

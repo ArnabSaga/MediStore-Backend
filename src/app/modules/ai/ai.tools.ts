@@ -50,7 +50,7 @@ export const AI_TOOL_DECLARATIONS: AiToolDeclaration[] = [
   {
     name: "finalizeResponse",
     description:
-      "Finish the response with the customer-facing answer and only the product ids returned by tools in this conversation.",
+      "Finish the response with the customer-facing answer and only the product ids returned by tools in this conversation. Optionally include a cartAction to propose a cart change (SET_QTY or CLEAR) or cartSummary: true to describe the customer's current cart. Cart changes apply only after the customer confirms.",
     parametersJsonSchema: toParametersJsonSchema(finalizeResponseArgsSchema),
   },
 ];

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  aiCartItemSelect,
   aiMedicineAvailabilitySelect,
   aiMedicineCardSelect,
   aiMedicineDetailsSelect,
@@ -12,6 +13,7 @@ describe("AI catalog selects", () => {
       aiMedicineCardSelect,
       aiMedicineDetailsSelect,
       aiMedicineAvailabilitySelect,
+      aiCartItemSelect,
     ]);
 
     expect(serialized).not.toMatch(/email|phone|password|customer|address|session/i);
@@ -23,6 +25,12 @@ describe("AI catalog selects", () => {
     expect(aiMedicineCardSelect.reviews.select).toEqual({
       rating: true,
     });
+    expect(aiCartItemSelect.seller.select).toEqual({
+      id: true,
+      name: true,
+      image: true,
+    });
+    expect(aiCartItemSelect).not.toHaveProperty("reviews");
   });
 
   it("filters public reviews and limits image payloads", () => {

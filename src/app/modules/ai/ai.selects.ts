@@ -60,6 +60,27 @@ export const aiMedicineAvailabilitySelect = {
   stock: true,
 } satisfies Prisma.MedicineSelect;
 
+/**
+ * Cart verification reads the same sale-critical fields as a card, plus the
+ * seller id needed for single-seller checkout compatibility. No PII.
+ */
+export const aiCartItemSelect = {
+  id: true,
+  name: true,
+  slug: true,
+  manufacturer: true,
+  price: true,
+  stock: true,
+  imageUrl: true,
+  seller: {
+    select: {
+      id: true,
+      name: true,
+      image: true,
+    },
+  },
+} satisfies Prisma.MedicineSelect;
+
 export type AiMedicineCardRecord = Prisma.MedicineGetPayload<{
   select: typeof aiMedicineCardSelect;
 }>;
@@ -70,4 +91,8 @@ export type AiMedicineDetailsRecord = Prisma.MedicineGetPayload<{
 
 export type AiMedicineAvailabilityRecord = Prisma.MedicineGetPayload<{
   select: typeof aiMedicineAvailabilitySelect;
+}>;
+
+export type AiCartItemRecord = Prisma.MedicineGetPayload<{
+  select: typeof aiCartItemSelect;
 }>;

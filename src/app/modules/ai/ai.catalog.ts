@@ -1,16 +1,23 @@
 import { Prisma } from "../../../generated/prisma/client";
 import { prisma } from "../../lib/prisma";
 import { buildPublicMedicineWhere } from "../medicines/medicine.visibility";
-import { AI_LOW_STOCK_THRESHOLD, AI_MAX_SEARCH_RESULTS } from "./ai.constants";
 import {
+  AI_LOW_STOCK_THRESHOLD,
+  AI_MAX_CART_ITEMS,
+  AI_MAX_SEARCH_RESULTS,
+} from "./ai.constants";
+import {
+  aiCartItemSelect,
   aiMedicineAvailabilitySelect,
   aiMedicineCardSelect,
   aiMedicineDetailsSelect,
+  type AiCartItemRecord,
   type AiMedicineAvailabilityRecord,
   type AiMedicineCardRecord,
   type AiMedicineDetailsRecord,
 } from "./ai.selects";
 import type {
+  AiCartProduct,
   AiCatalogAvailabilityResult,
   AiCatalogCompareResult,
   AiCatalogSearchInput,
@@ -84,6 +91,19 @@ const toAvailability = (
     stock: record.stock,
     inStock: record.stock > 0,
     stockStatus: getStockStatus(record.stock),
+  };
+};
+
+const toCartProduct = (record: AiCartItemRecord): AiCartProduct => {
+  return {
+    id: record.id,
+    name: record.name,
+    slug: record.slug,
+    manufacturer: record.manufacturer,
+    price: Number(record.price),
+    stock: record.stock,
+    imageUrl: record.imageUrl,
+    seller: record.seller,
   };
 };
 
@@ -303,5 +323,28 @@ export class PrismaMedicineCatalog implements MedicineCatalog {
       .map((id) => recordsById.get(id))
       .filter((record): record is AiMedicineCardRecord => Boolean(record))
       .map(toCard);
+  }
+
+  async findCartItems(medicineIds: string[]): Promise<AiCartProduct[]> {
+    const requestedIds = uniqueIds(medicineIds).slice(0, AI_MAX_CART_ITEMS);
+
+    if (requestedIds.length === 0) {
+      return [];
+    }
+
+    const records = await prisma.medicine.findMany({
+      where: {
+        id: { in: requestedIds },
+        ...buildPublicMedicineWhere(),
+      },
+      select: aiCartItemSelect,
+    });
+
+    const recordsById = new Map(records.map((record) => [record.id, record]));
+
+    return requestedIds
+      .map((id) => recordsById.get(id))
+      .filter((record): record is AiCartItemRecord => Boolean(record))
+      .map(toCartProduct);
   }
 }

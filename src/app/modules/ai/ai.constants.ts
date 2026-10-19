@@ -6,6 +6,7 @@ export const AI_MAX_HISTORY_MESSAGES = 6;
 export const AI_MAX_SEARCH_RESULTS = 8;
 export const AI_MAX_COMPARE_ITEMS = 4;
 export const AI_MAX_PRODUCT_IDS = 8;
+export const AI_MAX_CART_ITEMS = 20;
 
 export const AI_LOW_STOCK_THRESHOLD = 5;
 

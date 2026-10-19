@@ -13,6 +13,7 @@ vi.mock("../src/app/lib/prisma", () => ({
 
 import { PrismaMedicineCatalog } from "../src/app/modules/ai/ai.catalog";
 import {
+  aiCartItemSelect,
   aiMedicineAvailabilitySelect,
   aiMedicineCardSelect,
   aiMedicineDetailsSelect,
@@ -61,6 +62,21 @@ const availabilityRecord = {
   name: "Napa 500",
   price: "12.50",
   stock: 4,
+};
+
+const cartRecord = {
+  id: MEDICINE_ID,
+  name: "Napa 500",
+  slug: "napa-500",
+  manufacturer: "Beximco",
+  price: "12.50",
+  stock: 4,
+  imageUrl: null,
+  seller: {
+    id: sellerId,
+    name: "Care Pharmacy",
+    image: null,
+  },
 };
 
 describe("PrismaMedicineCatalog", () => {
@@ -258,5 +274,45 @@ describe("PrismaMedicineCatalog", () => {
     expect(prismaMock.medicine.findMany.mock.calls[0][0].select).toBe(
       aiMedicineCardSelect
     );
+  });
+
+  it("loads cart items with public visibility and sale-critical fields", async () => {
+    prismaMock.medicine.findMany.mockResolvedValue([cartRecord]);
+    const catalog = new PrismaMedicineCatalog();
+
+    const products = await catalog.findCartItems([MEDICINE_ID, MISSING_ID]);
+
+    expect(products).toEqual([
+      {
+        id: MEDICINE_ID,
+        name: "Napa 500",
+        slug: "napa-500",
+        manufacturer: "Beximco",
+        price: 12.5,
+        stock: 4,
+        imageUrl: null,
+        seller: cartRecord.seller,
+      },
+    ]);
+
+    const query = prismaMock.medicine.findMany.mock.calls[0][0];
+    expect(query.select).toBe(aiCartItemSelect);
+    expect(query.where).toMatchObject({
+      id: { in: [MEDICINE_ID, MISSING_ID] },
+      ...buildPublicMedicineWhere(),
+    });
+  });
+
+  it("deduplicates cart ids and skips the query for an empty cart", async () => {
+    const catalog = new PrismaMedicineCatalog();
+
+    await expect(catalog.findCartItems([])).resolves.toEqual([]);
+    expect(prismaMock.medicine.findMany).not.toHaveBeenCalled();
+
+    prismaMock.medicine.findMany.mockResolvedValue([]);
+    await catalog.findCartItems([MEDICINE_ID, MEDICINE_ID, MISSING_ID]);
+
+    const query = prismaMock.medicine.findMany.mock.calls[0][0];
+    expect(query.where.id.in).toEqual([MEDICINE_ID, MISSING_ID]);
   });
 });

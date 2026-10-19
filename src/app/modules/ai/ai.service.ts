@@ -3,6 +3,16 @@ import status from "http-status";
 
 import { envVars } from "../../config/env";
 import AppError from "../../error/AppError";
+import {
+  buildCartConflict,
+  buildCartContext,
+  buildCartProposal,
+  buildCartProposalAnswer,
+  buildCartSummary,
+  buildCartSummaryAnswer,
+  planCartAction,
+  verifyFinalCart,
+} from "./ai.cart";
 import { PrismaMedicineCatalog } from "./ai.catalog";
 import {
   AI_FALLBACK_MESSAGE,
@@ -17,10 +27,16 @@ import {
   logAiMetrics,
   type AiRequestMetrics,
 } from "./ai.metrics";
-import { AI_SYSTEM_PROMPT } from "./ai.prompt";
+import { buildAiSystemPrompt } from "./ai.prompt";
 import { buildGroundedAnswer, isSafeAssistantText } from "./ai.response";
 import { AI_TOOL_DECLARATIONS, AiToolExecutor } from "./ai.tools";
 import type {
+  AiCartConflict,
+  AiCartContext,
+  AiCartInput,
+  AiCartProduct,
+  AiCartProposal,
+  AiCartSummary,
   AiMedicineCard,
   AiShoppingChatInput,
   AiShoppingChatResult,
@@ -70,6 +86,20 @@ const invalidFinalizeResponse = (): Record<string, unknown> => {
       code: "INVALID_ARGUMENTS",
       message:
         "finalizeResponse requires a non-empty answer and an array of product ids. Use only ids returned by tools.",
+    },
+  };
+};
+
+/**
+ * Retry-only cart errors are returned to the model instead of the customer.
+ * The model must correct the action and call finalizeResponse again.
+ */
+const cartRetryResponse = (conflict: AiCartConflict): Record<string, unknown> => {
+  return {
+    ok: false,
+    error: {
+      code: conflict.code,
+      message: conflict.message,
     },
   };
 };
@@ -127,8 +157,14 @@ export class AiShoppingChatService implements ShoppingChatService {
     const seenProductIds = new Set<string>();
 
     try {
+      // The cart snapshot is verified against the catalog before the model
+      // sees it, so prices, stock, and sellers in the prompt are server data.
+      const cartContext = await this.loadCartContext(input.cart, metrics);
+      const cartMedicineIds = new Set(
+        (cartContext?.items ?? []).map((item) => item.id)
+      );
       const session = this.provider.createChat({
-        systemInstruction: AI_SYSTEM_PROMPT,
+        systemInstruction: buildAiSystemPrompt(cartContext),
         tools: AI_TOOL_DECLARATIONS,
         history: input.history ?? [],
         signal: abortController.signal,
@@ -177,6 +213,29 @@ export class AiShoppingChatService implements ShoppingChatService {
               continue;
             }
 
+            if (parsed.data.cartAction || parsed.data.cartSummary) {
+              const outcome = await this.buildCartOutcome(
+                parsed.data,
+                cartContext,
+                new Set([...seenProductIds, ...cartMedicineIds]),
+                toolCalls,
+                abortController,
+                metrics
+              );
+
+              if (outcome.kind === "retry") {
+                invalidFinalize = true;
+                toolResponses.push({
+                  name: call.name,
+                  id: call.id,
+                  response: cartRetryResponse(outcome.conflict),
+                });
+                continue;
+              }
+
+              return outcome.result;
+            }
+
             return await this.buildFinalizedResult(
               parsed.data,
               seenProductIds,
@@ -187,7 +246,11 @@ export class AiShoppingChatService implements ShoppingChatService {
           }
 
           const result = await this.runDatabaseOperation("catalog:tool", metrics, () =>
-            this.executor.execute(call.name, call.args, seenProductIds)
+            this.executor.execute(
+              call.name,
+              call.args,
+              new Set([...seenProductIds, ...cartMedicineIds])
+            )
           );
 
           if (call.name === "searchMedicines") {
@@ -216,8 +279,14 @@ export class AiShoppingChatService implements ShoppingChatService {
         // Fast path: a search-only turn is finalized from the database. This
         // removes one Gemini generation and guarantees that the prose cannot
         // invent prices, strengths, equivalence claims, or stock levels.
+        //
+        // Skipped whenever a cart snapshot is attached: the model only learns
+        // product ids from search results, so it needs the follow-up turn to
+        // reach finalizeResponse with a cart action. API clients without a
+        // cart keep the fast path unchanged.
         if (
           this.options.enableSearchFastPath &&
+          input.cart === undefined &&
           toolRounds === 0 &&
           successfulSearchCalls > 0 &&
           !executedNonSearch &&
@@ -263,6 +332,14 @@ export class AiShoppingChatService implements ShoppingChatService {
         }
 
         throw mapProviderError(error);
+      }
+
+      if (error instanceof AppError) {
+        // Cart verification rejections are client-visible (4xx); a 5xx
+        // AppError here is an infrastructure failure while reading the cart.
+        metrics.errorCategory = error.statusCode < 500 ? "CLIENT" : "CATALOG";
+
+        throw error;
       }
 
       metrics.errorCategory = "INTERNAL";
@@ -333,6 +410,219 @@ export class AiShoppingChatService implements ShoppingChatService {
 
     metrics.timeoutStage = metrics.timeoutStage ?? metrics.stage ?? "finalization";
     throw new AiProviderError("TIMEOUT", "The AI request timed out.");
+  }
+
+  /**
+   * Re-fetches the client's cart lines from the public catalog. Only ids and
+   * quantities are trusted; price, stock, seller, and availability come from
+   * the database. An id that is no longer publicly sellable rejects the whole
+   * request rather than trusting a partial cart.
+   */
+  private async loadCartContext(
+    cart: AiCartInput | undefined,
+    metrics: AiRequestMetrics
+  ): Promise<AiCartContext | null> {
+    if (!cart) {
+      return null;
+    }
+
+    let products: AiCartProduct[];
+
+    try {
+      products = await this.runDatabaseOperation("catalog:cart", metrics, () =>
+        this.catalog.findCartItems(cart.items.map((item) => item.medicineId))
+      );
+    } catch (error) {
+      console.error("[ai] cart load failed", {
+        error: error instanceof Error ? error.name : "unknown",
+      });
+
+      throw new AppError(
+        status.SERVICE_UNAVAILABLE,
+        "The AI assistant could not read your cart. Please try again."
+      );
+    }
+
+    const context = buildCartContext(cart.items, products);
+
+    if (!context) {
+      throw new AppError(
+        status.BAD_REQUEST,
+        "Your cart includes a medicine that is no longer available in the catalog. Remove it from your cart and try again."
+      );
+    }
+
+    return context;
+  }
+
+  private async loadCartProducts(
+    medicineIds: string[],
+    metrics: AiRequestMetrics
+  ): Promise<AiCartProduct[] | null> {
+    if (medicineIds.length === 0) {
+      return [];
+    }
+
+    try {
+      return await this.runDatabaseOperation("catalog:cart", metrics, () =>
+        this.catalog.findCartItems(medicineIds)
+      );
+    } catch (error) {
+      metrics.errorCategory = "CATALOG";
+      console.error("[ai] cart verification failed", {
+        error: error instanceof Error ? error.name : "unknown",
+      });
+      return null;
+    }
+  }
+
+  /**
+   * Validates a model-proposed cart action against the verified cart context
+   * and the freshly re-fetched final cart, then builds either a confirmable
+   * proposal or a deterministic conflict answer. Never mutates anything.
+   */
+  private async buildCartOutcome(
+    data: TFinalizeResponseArgs,
+    cart: AiCartContext | null,
+    allowedMedicineIds: ReadonlySet<string>,
+    toolCalls: number,
+    abortController: AbortController,
+    metrics: AiRequestMetrics
+  ): Promise<
+    | { kind: "retry"; conflict: AiCartConflict }
+    | { kind: "result"; result: AiShoppingChatResult }
+  > {
+    const finalizationStartedAt = performance.now();
+    const finishResult = (result: AiShoppingChatResult) => {
+      metrics.finalizationMs = elapsedMs(finalizationStartedAt);
+
+      return { kind: "result" as const, result };
+    };
+
+    if (!cart) {
+      return finishResult(
+        this.buildCartConflictResult(
+          buildCartConflict("CART_UNAVAILABLE"),
+          toolCalls
+        )
+      );
+    }
+
+    if (data.cartAction && data.cartSummary) {
+      return { kind: "retry", conflict: buildCartConflict("INVALID_ACTION") };
+    }
+
+    if (data.cartSummary) {
+      return finishResult(
+        this.buildCartSummaryResult(buildCartSummary(cart), toolCalls)
+      );
+    }
+
+    if (!data.cartAction) {
+      return { kind: "retry", conflict: buildCartConflict("INVALID_ACTION") };
+    }
+
+    const plan = planCartAction(data.cartAction, cart, allowedMedicineIds);
+
+    if (plan.kind === "retry") {
+      return { kind: "retry", conflict: plan.conflict };
+    }
+
+    if (plan.kind === "rejected") {
+      return finishResult(
+        this.buildCartConflictResult(plan.conflict, toolCalls)
+      );
+    }
+
+    const finalIds = Array.from(plan.finalQuantities.entries())
+      .filter(([, quantity]) => quantity > 0)
+      .map(([medicineId]) => medicineId);
+    const freshProducts = await this.loadCartProducts(finalIds, metrics);
+
+    if (!freshProducts) {
+      return finishResult(this.buildFallbackResult(toolCalls, metrics));
+    }
+
+    const verification = verifyFinalCart({
+      cart,
+      changes: plan.changes,
+      finalQuantities: plan.finalQuantities,
+      freshProducts,
+    });
+
+    this.assertWithinBudget(abortController, metrics);
+
+    if (verification.conflict) {
+      return finishResult(
+        this.buildCartConflictResult(verification.conflict, toolCalls)
+      );
+    }
+
+    const proposal = buildCartProposal(
+      plan.action,
+      plan.changes,
+      cart.fingerprint,
+      verification.snapshots
+    );
+
+    if (!proposal) {
+      return finishResult(
+        this.buildCartConflictResult(
+          buildCartConflict("PRODUCT_UNAVAILABLE"),
+          toolCalls
+        )
+      );
+    }
+
+    return finishResult(this.buildCartProposalResult(proposal, toolCalls));
+  }
+
+  private buildCartProposalResult(
+    proposal: AiCartProposal,
+    toolCalls: number
+  ): AiShoppingChatResult {
+    return {
+      answer: buildCartProposalAnswer(proposal),
+      products: [],
+      cart: { proposal },
+      meta: {
+        model: this.provider.model,
+        toolCalls,
+        fallback: false,
+      },
+    };
+  }
+
+  private buildCartConflictResult(
+    conflict: AiCartConflict,
+    toolCalls: number
+  ): AiShoppingChatResult {
+    return {
+      answer: conflict.message,
+      products: [],
+      cart: { conflict },
+      meta: {
+        model: this.provider.model,
+        toolCalls,
+        fallback: false,
+      },
+    };
+  }
+
+  private buildCartSummaryResult(
+    summary: AiCartSummary,
+    toolCalls: number
+  ): AiShoppingChatResult {
+    return {
+      answer: buildCartSummaryAnswer(summary),
+      products: [],
+      cart: { summary },
+      meta: {
+        model: this.provider.model,
+        toolCalls,
+        fallback: false,
+      },
+    };
   }
 
   private async buildFinalizedResult(

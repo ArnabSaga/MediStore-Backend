@@ -1,6 +1,7 @@
 import { vi } from "vitest";
 
 import type {
+  AiCartProduct,
   AiChatSession,
   AiHistoryMessage,
   AiMedicineCard,
@@ -13,6 +14,9 @@ import type {
 export const MEDICINE_ID = "11111111-1111-4111-8111-111111111111";
 export const HALLUCINATED_ID = "22222222-2222-4222-8222-222222222222";
 export const MISSING_ID = "33333333-3333-4333-8333-333333333333";
+export const MEDICINE_ID_2 = "77777777-7777-4777-8777-777777777777";
+export const SELLER_ID = "55555555-5555-4555-8555-555555555555";
+export const OTHER_SELLER_ID = "66666666-6666-4666-8666-666666666666";
 
 export const createCard = (overrides: Partial<AiMedicineCard> = {}): AiMedicineCard => {
   return {
@@ -31,12 +35,32 @@ export const createCard = (overrides: Partial<AiMedicineCard> = {}): AiMedicineC
       slug: "pain-relief",
     },
     seller: {
-      id: "55555555-5555-4555-8555-555555555555",
+      id: SELLER_ID,
       name: "Care Pharmacy",
       image: null,
     },
     rating: 4.5,
     reviewCount: 2,
+    ...overrides,
+  };
+};
+
+export const createCartProduct = (
+  overrides: Partial<AiCartProduct> = {}
+): AiCartProduct => {
+  return {
+    id: MEDICINE_ID,
+    name: "Napa 500",
+    slug: "napa-500",
+    manufacturer: "Beximco",
+    price: 12.5,
+    stock: 20,
+    imageUrl: null,
+    seller: {
+      id: SELLER_ID,
+      name: "Care Pharmacy",
+      image: null,
+    },
     ...overrides,
   };
 };
@@ -52,6 +76,7 @@ export const createCatalogMock = () => {
       .fn<MedicineCatalog["compare"]>()
       .mockResolvedValue({ products: [], missingIds: [] }),
     hydrate: vi.fn<MedicineCatalog["hydrate"]>().mockResolvedValue([]),
+    findCartItems: vi.fn<MedicineCatalog["findCartItems"]>().mockResolvedValue([]),
   };
 };
 
