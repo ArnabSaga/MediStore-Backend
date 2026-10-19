@@ -12,6 +12,8 @@
     "studio": "prisma studio",
     "seed:admin": "tsx src/app/utils/runSeedAdmin.ts",
     "lint": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "build:vercel": "prisma generate && tsup --config tsup.vercel.config.ts",
     "build:server": "prisma generate && tsup --config tsup.server.config.ts"
   },
@@ -27,11 +29,15 @@
     "@types/node": "^24.10.9",
     "@types/nodemailer": "^7.0.9",
     "@types/pg": "^8.16.0",
+    "@types/supertest": "^7.2.1",
     "prisma": "^7.3.0",
+    "supertest": "^7.3.1",
     "tsx": "^4.21.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^5.0.5"
   },
   "dependencies": {
+    "@google/genai": "^2.30.0",
     "@prisma/adapter-pg": "^7.3.0",
     "@prisma/client": "^7.3.0",
     "better-auth": "^1.6.1",
@@ -40,6 +46,7 @@
     "cors": "^2.8.6",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
+    "express-rate-limit": "^8.7.1",
     "http-status": "^2.1.0",
     "multer": "^2.1.1",
     "multer-storage-cloudinary": "^4.0.0",

@@ -5,6 +5,7 @@ import AppError from "../../error/AppError";
 import { prisma } from "../../lib/prisma";
 import { generateSlug } from "../../utils/generateSlug";
 import { queryHelper } from "../../utils/queryHelper";
+import { buildPublicMedicineWhere } from "./medicine.visibility";
 
 type TMedicineImageInput =
   | string
@@ -302,28 +303,6 @@ const ensureUniqueSellerSlug = async (
   if (existingMedicine) {
     throw new AppError(status.CONFLICT, "A medicine with this slug already exists for this seller");
   }
-};
-
-const buildPublicMedicineWhere = (): Prisma.MedicineWhereInput => {
-  return {
-    isActive: true,
-    isDeleted: false,
-    category: {
-      is: {
-        isActive: true,
-        isDeleted: false,
-      },
-    },
-    seller: {
-      is: {
-        role: "SELLER",
-        emailVerified: true,
-        isActive: true,
-        isBanned: false,
-        isDeleted: false,
-      },
-    },
-  };
 };
 
 const createMedicine = async (payload: TCreateMedicinePayload) => {

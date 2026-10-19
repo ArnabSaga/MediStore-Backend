@@ -28,6 +28,13 @@ interface EnvConfig {
     MEDICINE_FOLDER: string;
     CATEGORY_FOLDER: string;
   };
+  AI_ENABLED: boolean;
+  AI_PROVIDER: string;
+  GEMINI_API_KEY: string;
+  GEMINI_MODEL: string;
+  AI_TIMEOUT_MS: number;
+  AI_MAX_TOOL_ROUNDS: number;
+  AI_MAX_TOOL_CALLS: number;
 }
 
 const requireEnv = (name: string): string => {
@@ -37,6 +44,25 @@ const requireEnv = (name: string): string => {
     throw new AppError(
       status.INTERNAL_SERVER_ERROR,
       `Critical env var {${name}} is not set.`
+    );
+  }
+
+  return value;
+};
+
+const parsePositiveIntegerEnv = (name: string, fallback: number): number => {
+  const rawValue = process.env[name]?.trim();
+
+  if (!rawValue) {
+    return fallback;
+  }
+
+  const value = Number(rawValue);
+
+  if (!Number.isInteger(value) || value <= 0) {
+    throw new AppError(
+      status.INTERNAL_SERVER_ERROR,
+      `Env var {${name}} must be a positive integer.`
     );
   }
 
@@ -79,6 +105,23 @@ const loadEnvVariables = (): EnvConfig => {
     requireEnv("BETTER_AUTH_SECRET");
   }
 
+  const aiEnabled = process.env.AI_ENABLED?.trim().toLowerCase() === "true";
+  const aiProvider = process.env.AI_PROVIDER?.trim().toLowerCase() || "gemini";
+  let geminiApiKey = process.env.GEMINI_API_KEY?.trim() || "";
+  let geminiModel = process.env.GEMINI_MODEL?.trim() || "";
+
+  if (aiEnabled) {
+    geminiApiKey = requireEnv("GEMINI_API_KEY");
+    geminiModel = requireEnv("GEMINI_MODEL");
+
+    if (aiProvider !== "gemini") {
+      throw new AppError(
+        status.INTERNAL_SERVER_ERROR,
+        `Unsupported AI provider {${aiProvider}}. Only "gemini" is supported.`
+      );
+    }
+  }
+
   return {
     NODE_ENV: nodeEnv,
     PORT: process.env.PORT as string,
@@ -111,6 +154,13 @@ const loadEnvVariables = (): EnvConfig => {
       MEDICINE_FOLDER: process.env.MEDICINE_FOLDER as string,
       CATEGORY_FOLDER: process.env.CATEGORY_FOLDER as string,
     },
+    AI_ENABLED: aiEnabled,
+    AI_PROVIDER: aiProvider,
+    GEMINI_API_KEY: geminiApiKey,
+    GEMINI_MODEL: geminiModel,
+    AI_TIMEOUT_MS: parsePositiveIntegerEnv("AI_TIMEOUT_MS", 15_000),
+    AI_MAX_TOOL_ROUNDS: parsePositiveIntegerEnv("AI_MAX_TOOL_ROUNDS", 3),
+    AI_MAX_TOOL_CALLS: parsePositiveIntegerEnv("AI_MAX_TOOL_CALLS", 6),
   };
 };
 

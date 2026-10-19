@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { AiShoppingRouter } from "../modules/ai/ai.route";
 import { AdminCategoryRouter, CategoryRouter } from "../modules/categories/category.route";
 import {
   AdminMedicineRouter,
@@ -24,6 +25,7 @@ const moduleRoutes: TModuleRoutes[] = [
   { path: "/admin/categories", route: AdminCategoryRouter },
   { path: "/reviews", route: ReviewRouter },
   { path: "/medicines", route: MedicineRouter },
+  { path: "/ai/shopping", route: AiShoppingRouter },
   { path: "/seller/medicines", route: SellerMedicineRouter },
   { path: "/admin/medicines", route: AdminMedicineRouter },
   { path: "/orders", route: OrderRouter },
